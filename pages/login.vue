@@ -100,19 +100,23 @@ const demoCredentials: Record<string, { email: string; password: string }> = {
   studio: { email: 'demo.studio@adeguatiassetti.it', password: 'Demo2025!' }
 }
 
-// Check for demo parameter
-const demoType = route.query.demo as string
-const initialCredentials = demoType && demoCredentials[demoType]
-  ? demoCredentials[demoType]
-  : { email: '', password: '' }
-
 const form = reactive({
-  email: initialCredentials.email,
-  password: initialCredentials.password,
+  email: '',
+  password: '',
   remember: false
 })
 
-const isDemo = computed(() => !!demoType && !!demoCredentials[demoType])
+const isDemo = ref(false)
+
+// Check for demo parameter on client-side mount
+onMounted(() => {
+  const demoType = route.query.demo as string
+  if (demoType && demoCredentials[demoType]) {
+    form.email = demoCredentials[demoType].email
+    form.password = demoCredentials[demoType].password
+    isDemo.value = true
+  }
+})
 
 const loading = ref(false)
 const error = ref('')
