@@ -322,7 +322,7 @@ const loadExistingData = async () => {
 
   try {
     const response = await $fetch<{ success: boolean; data: any }>(
-      `${config.public.apiBase}/adeguati-assetti/dati-economici/${selectedAnno.value}/${selectedMese.value}`,
+      `${config.public.apiBase}/adeguati-assetti/api/dati-economici/${selectedAnno.value}/${selectedMese.value}`,
       { headers: getAuthHeaders() }
     )
 
@@ -344,12 +344,17 @@ const salva = async () => {
   errorMessage.value = ''
 
   try {
+    // Get azienda_id from user data
+    const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
+    const aziendaId = user.azienda_id || 1
+
     const response = await $fetch<{ success: boolean; message: string }>(
-      `${config.public.apiBase}/adeguati-assetti/dati-economici`,
+      `${config.public.apiBase}/adeguati-assetti/api/dati-economici`,
       {
         method: 'POST',
         headers: getAuthHeaders(),
         body: {
+          azienda_id: aziendaId,
           anno: selectedAnno.value,
           mese: selectedMese.value,
           ...form,
@@ -361,10 +366,10 @@ const salva = async () => {
       successMessage.value = 'Dati salvati! KPI ricalcolati.'
 
       // Ricalcola KPI
-      await $fetch(`${config.public.apiBase}/adeguati-assetti/calcola`, {
+      await $fetch(`${config.public.apiBase}/adeguati-assetti/api/calcola`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: { anno: selectedAnno.value, mese: selectedMese.value }
+        body: { azienda_id: aziendaId, anno: selectedAnno.value, mese: selectedMese.value }
       })
 
       setTimeout(() => {
