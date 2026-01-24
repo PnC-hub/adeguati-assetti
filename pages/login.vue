@@ -1,5 +1,16 @@
 <template>
   <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <!-- Demo Banner -->
+    <div v-if="isDemo" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center gap-2 text-blue-800">
+        <Icon name="heroicons:information-circle" class="w-5 h-5" />
+        <span class="font-medium">Modalita Demo</span>
+      </div>
+      <p class="text-sm text-blue-600 mt-1">
+        Credenziali pre-compilate. Clicca "Accedi" per esplorare.
+      </p>
+    </div>
+
     <div class="text-center mb-8">
       <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
         <Icon name="heroicons:chart-bar" class="w-7 h-7 text-white" />
@@ -79,13 +90,29 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
 const config = useRuntimeConfig()
 
+// Demo credentials mapping
+const demoCredentials: Record<string, { email: string; password: string }> = {
+  sana: { email: 'demo.sana@adeguatiassetti.it', password: 'Demo2025!' },
+  critica: { email: 'demo.critica@adeguatiassetti.it', password: 'Demo2025!' },
+  studio: { email: 'demo.studio@adeguatiassetti.it', password: 'Demo2025!' }
+}
+
+// Check for demo parameter
+const demoType = route.query.demo as string
+const initialCredentials = demoType && demoCredentials[demoType]
+  ? demoCredentials[demoType]
+  : { email: '', password: '' }
+
 const form = reactive({
-  email: '',
-  password: '',
+  email: initialCredentials.email,
+  password: initialCredentials.password,
   remember: false
 })
+
+const isDemo = computed(() => !!demoType && !!demoCredentials[demoType])
 
 const loading = ref(false)
 const error = ref('')
