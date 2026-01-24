@@ -22,13 +22,22 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-        <input
-          v-model="form.password"
-          type="password"
-          required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="••••••••"
-        />
+        <div class="relative">
+          <input
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            required
+            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="••••••••"
+          />
+          <button
+            type="button"
+            @click="showPassword = !showPassword"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          >
+            <Icon :name="showPassword ? 'heroicons:eye-slash' : 'heroicons:eye'" class="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center justify-between">
@@ -80,6 +89,7 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+const showPassword = ref(false)
 
 const handleLogin = async () => {
   loading.value = true
