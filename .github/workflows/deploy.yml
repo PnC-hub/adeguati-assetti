@@ -1,0 +1,45 @@
+name: Deploy Adeguati Assetti
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NUXT_PUBLIC_API_BASE: https://api.geniusmile.com/api/v1
+          NUXT_PUBLIC_API_KEY: ${{ secrets.API_KEY }}
+
+      - name: Generate static
+        run: npm run generate
+        env:
+          NUXT_PUBLIC_API_BASE: https://api.geniusmile.com/api/v1
+          NUXT_PUBLIC_API_KEY: ${{ secrets.API_KEY }}
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 93.186.255.213 >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          rsync -avz --delete .output/public/ geniusfast@93.186.255.213:/tmp/adeguati-assetti-deploy/
+          ssh geniusfast@93.186.255.213 "sudo rm -rf /var/www/vhosts/geniusmile.com/adeguati-assetti/* && sudo mv /tmp/adeguati-assetti-deploy/* /var/www/vhosts/geniusmile.com/adeguati-assetti/ && sudo chown -R geniusmile:psacln /var/www/vhosts/geniusmile.com/adeguati-assetti/"
