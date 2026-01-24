@@ -144,16 +144,17 @@ const handleRegister = async () => {
         method: 'POST',
         headers: {
           'X-API-Key': config.public.apiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
         },
-        body: {
+        body: new URLSearchParams({
           nome: form.nome,
           cognome: form.cognome,
           azienda: form.azienda,
           email: form.email,
           password: form.password,
           password_confirmation: form.password_confirmation
-        }
+        }).toString()
       }
     )
 

@@ -92,12 +92,13 @@ const handleLogin = async () => {
         method: 'POST',
         headers: {
           'X-API-Key': config.public.apiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
         },
-        body: {
+        body: new URLSearchParams({
           email: form.email,
           password: form.password
-        }
+        }).toString()
       }
     )
 
