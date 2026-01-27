@@ -541,44 +541,50 @@
           </div>
 
           <div class="space-y-3">
-            <a
-              href="/login?demo=sana"
-              class="block w-full p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition"
+            <button
+              @click="accessDemo('sana')"
+              :disabled="demoLoading !== null"
+              class="block w-full p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left disabled:opacity-50"
             >
               <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                <div class="text-left">
+                <div v-if="demoLoading === 'sana'" class="w-3 h-3 rounded-full border-2 border-green-500 border-t-transparent animate-spin"></div>
+                <div v-else class="w-3 h-3 rounded-full bg-green-500"></div>
+                <div>
                   <div class="font-semibold text-gray-900">Azienda Sana</div>
                   <div class="text-sm text-gray-500">KPI tutti verdi - situazione ottimale</div>
                 </div>
               </div>
-            </a>
+            </button>
 
-            <a
-              href="/login?demo=critica"
-              class="block w-full p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition"
+            <button
+              @click="accessDemo('critica')"
+              :disabled="demoLoading !== null"
+              class="block w-full p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition text-left disabled:opacity-50"
             >
               <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <div class="text-left">
+                <div v-if="demoLoading === 'critica'" class="w-3 h-3 rounded-full border-2 border-red-500 border-t-transparent animate-spin"></div>
+                <div v-else class="w-3 h-3 rounded-full bg-red-500"></div>
+                <div>
                   <div class="font-semibold text-gray-900">Azienda a Rischio</div>
                   <div class="text-sm text-gray-500">Alert critici - intervento necessario</div>
                 </div>
               </div>
-            </a>
+            </button>
 
-            <a
-              href="/login?demo=studio"
-              class="block w-full p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition"
+            <button
+              @click="accessDemo('studio')"
+              :disabled="demoLoading !== null"
+              class="block w-full p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left disabled:opacity-50"
             >
               <div class="flex items-center gap-3">
-                <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                <div class="text-left">
+                <div v-if="demoLoading === 'studio'" class="w-3 h-3 rounded-full border-2 border-blue-500 border-t-transparent animate-spin"></div>
+                <div v-else class="w-3 h-3 rounded-full bg-blue-500"></div>
+                <div>
                   <div class="font-semibold text-gray-900">Studio Commercialista</div>
                   <div class="text-sm text-gray-500">Multi-azienda - gestione clienti</div>
                 </div>
               </div>
-            </a>
+            </button>
           </div>
 
           <div class="mt-6 pt-6 border-t border-gray-100">
@@ -601,4 +607,47 @@ definePageMeta({
 })
 
 const showDemo = ref(false)
+const demoLoading = ref<string | null>(null)
+const router = useRouter()
+const config = useRuntimeConfig()
+
+const demoCredentials: Record<string, { email: string; password: string }> = {
+  sana: { email: 'demo.sana@adeguatiassetti.it', password: 'Demo2025!' },
+  critica: { email: 'demo.critica@adeguatiassetti.it', password: 'Demo2025!' },
+  studio: { email: 'demo.studio@adeguatiassetti.it', password: 'Demo2025!' }
+}
+
+const accessDemo = async (tipo: string) => {
+  demoLoading.value = tipo
+  try {
+    const creds = demoCredentials[tipo]
+    const response = await $fetch<{ success: boolean; data: { token: string; user: any }; message?: string }>(
+      `${config.public.apiBase}/adeguati-assetti/auth/login`,
+      {
+        method: 'POST',
+        headers: {
+          'X-API-Key': config.public.apiKey,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        },
+        body: new URLSearchParams({
+          email: creds.email,
+          password: creds.password
+        }).toString()
+      }
+    )
+
+    if (response.success) {
+      localStorage.setItem('aa_token', response.data.token)
+      localStorage.setItem('aa_user', JSON.stringify(response.data.user))
+      showDemo.value = false
+      router.push('/dashboard')
+    }
+  } catch (e) {
+    // Fallback to login page if API fails
+    router.push(`/login?demo=${tipo}`)
+  } finally {
+    demoLoading.value = null
+  }
+}
 </script>
