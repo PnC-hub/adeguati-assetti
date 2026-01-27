@@ -108,13 +108,17 @@ const form = reactive({
 
 const isDemo = ref(false)
 
-// Check for demo parameter on client-side mount
-onMounted(() => {
+// Check for demo parameter on client-side mount and auto-login
+onMounted(async () => {
   const demoType = route.query.demo as string
   if (demoType && demoCredentials[demoType]) {
     form.email = demoCredentials[demoType].email
     form.password = demoCredentials[demoType].password
     isDemo.value = true
+
+    // Auto-login for demo accounts
+    await nextTick()
+    handleLogin()
   }
 })
 
