@@ -1,26 +1,20 @@
 {
   "name": "adeguati-assetti",
   "version": "1.0.0",
+  "description": "Monitoraggio Adeguati Assetti Organizzativi - Art. 2086 C.C.",
   "private": true,
-  "type": "module",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && php artisan serve",
+    "build:frontend": "cd frontend && npm run generate",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && composer install",
+    "install:all": "npm run install:frontend && npm run install:backend"
   },
-  "dependencies": {
-    "@nuxt/icon": "^1.10.0",
-    "@nuxtjs/tailwindcss": "^6.14.0",
-    "@pinia/nuxt": "^0.5.5",
-    "nuxt": "^3.17.0",
-    "pinia": "^2.3.0",
-    "vue": "^3.5.0",
-    "vue-router": "^4.5.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PnC-hub/adeguati-assetti.git"
   },
-  "devDependencies": {
-    "@nuxt/devtools": "^1.7.0",
-    "typescript": "^5.7.0"
-  }
+  "author": "SmileDoc S.r.l.",
+  "license": "UNLICENSED"
 }

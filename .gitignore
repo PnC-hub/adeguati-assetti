@@ -1,13 +1,23 @@
-# Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
+# Frontend - Nuxt dev/build outputs
+frontend/.output
+frontend/.data
+frontend/.nuxt
+frontend/.nitro
+frontend/.cache
+frontend/dist
 
-# Node dependencies
-node_modules
+# Frontend - Node dependencies
+frontend/node_modules
+
+# Backend - Laravel
+backend/vendor
+backend/node_modules
+backend/.env
+backend/storage/*.key
+backend/storage/logs/*
+!backend/storage/logs/.gitkeep
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitkeep
 
 # Logs
 logs
@@ -17,8 +27,12 @@ logs
 .DS_Store
 .fleet
 .idea
+*.swp
+*.swo
 
 # Local env files
 .env
 .env.*
 !.env.example
+!backend/.env.example
+!backend/.env.production
