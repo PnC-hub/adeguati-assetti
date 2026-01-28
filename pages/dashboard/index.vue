@@ -231,9 +231,13 @@ const loadDashboard = async () => {
   loading.value = true
   error.value = null
 
+  // Get azienda_id from user data
+  const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
+  const aziendaId = user.azienda_id || 5
+
   try {
     const response = await $fetch<{ success: boolean; data: DashboardData }>(
-      `${config.public.apiBase}/adeguati-assetti/dashboard?anno=${selectedAnno.value}&mese=${selectedMese.value}`,
+      `${config.public.apiBase}/adeguati-assetti/api/dashboard?azienda_id=${aziendaId}&anno=${selectedAnno.value}&mese=${selectedMese.value}`,
       { headers: getAuthHeaders() }
     )
 
@@ -275,10 +279,10 @@ const ricalcola = async () => {
 
   // Get azienda_id from user data
   const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-  const aziendaId = user.azienda_id || 1
+  const aziendaId = user.azienda_id || 5
 
   try {
-    await $fetch(`${config.public.apiBase}/adeguati-assetti/calcola`, {
+    await $fetch(`${config.public.apiBase}/adeguati-assetti/api/calcola`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: { azienda_id: aziendaId, anno: selectedAnno.value, mese: selectedMese.value }
