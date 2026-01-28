@@ -351,7 +351,33 @@ class AdeguatiAssettiStandaloneController extends Controller
 
     private function getAuthUser(Request $request)
     {
+        // Try standard Bearer token first
         $token = $request->bearerToken();
+
+        // Fallback: check Authorization header directly (some proxies strip it)
+        if (!$token && $request->header('Authorization')) {
+            $auth = $request->header('Authorization');
+            if (str_starts_with($auth, 'Bearer ')) {
+                $token = substr($auth, 7);
+            }
+        }
+
+        // Fallback: check HTTP_AUTHORIZATION server variable
+        if (!$token && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $auth = $_SERVER['HTTP_AUTHORIZATION'];
+            if (str_starts_with($auth, 'Bearer ')) {
+                $token = substr($auth, 7);
+            }
+        }
+
+        // Fallback: check REDIRECT_HTTP_AUTHORIZATION (Apache mod_rewrite)
+        if (!$token && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+            if (str_starts_with($auth, 'Bearer ')) {
+                $token = substr($auth, 7);
+            }
+        }
+
         if (!$token) return null;
 
         $tokenRecord = DB::table('aa_tokens')

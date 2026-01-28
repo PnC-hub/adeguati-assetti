@@ -606,6 +606,10 @@ const demoCredentials: Record<string, { email: string; password: string }> = {
 const accessDemo = async (tipo: string) => {
   demoLoading.value = tipo
   try {
+    // Clear any existing session first
+    localStorage.removeItem('aa_token')
+    localStorage.removeItem('aa_user')
+
     const creds = demoCredentials[tipo]
     const response = await $fetch<{ success: boolean; data: { token: string; user: any }; message?: string }>(
       `${config.public.apiBase}/auth/login`,
@@ -627,7 +631,8 @@ const accessDemo = async (tipo: string) => {
       localStorage.setItem('aa_token', response.data.token)
       localStorage.setItem('aa_user', JSON.stringify(response.data.user))
       showDemo.value = false
-      router.push('/dashboard')
+      // Force full page reload to ensure fresh dashboard data
+      window.location.href = '/dashboard'
     }
   } catch (e) {
     // Fallback to login page if API fails

@@ -11,7 +11,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'https://adeguatiassettiimpresa.it/api',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
       apiKey: process.env.NUXT_PUBLIC_API_KEY || 'sk_adeguatiassetti_2025_xK9mP3nQ7rT2wY5v'
     }
   },
