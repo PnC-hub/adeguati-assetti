@@ -31,51 +31,80 @@
     </div>
 
     <form v-else @submit.prevent="salva" class="space-y-6">
-      <!-- Stato Patrimoniale -->
+      <!-- SEZIONE 1: STATO PATRIMONIALE (KPI Obbligatori CNDCEC) -->
       <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <h2 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
           <Icon name="heroicons:scale" class="w-5 h-5 text-blue-600" />
           Stato Patrimoniale
         </h2>
+        <p class="text-xs text-gray-500 mb-4">Dati obbligatori per calcolo KPI CNDCEC</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Patrimonio Netto</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Patrimonio Netto *</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.patrimonio_netto" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.patrimonio_netto" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Voce A Passivo SP</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Totale Attivo *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
+              <input v-model.number="form.totale_attivo" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Totale Attivo</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Attivo Circolante *</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.totale_attivo" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.attivo_circolante" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
+            <p class="text-xs text-gray-400 mt-1">Per Current Ratio</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Attività Correnti</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti Breve Termine *</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.attivita_correnti" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.debiti_breve_termine" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Passività Correnti</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.passivita_correnti" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-            </div>
+            <p class="text-xs text-gray-400 mt-1">Scadenza entro 12 mesi</p>
           </div>
         </div>
       </div>
 
-      <!-- Debiti -->
+      <!-- SEZIONE 2: DEBITI E ONERI FINANZIARI -->
       <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <h2 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
           <Icon name="heroicons:document-text" class="w-5 h-5 text-blue-600" />
-          Debiti
+          Debiti e Oneri Finanziari
         </h2>
+        <p class="text-xs text-gray-500 mb-4">Per calcolo DSCR, PN/Debiti, Deb.Trib/Attivo</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti Totali *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
+              <input v-model.number="form.debiti_totali" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Somma tutti i debiti</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti Tributari *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
+              <input v-model.number="form.debiti_tributari" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <p class="text-xs text-gray-400 mt-1">IVA, IRPEF, IRES, INPS</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Oneri Finanziari *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
+              <input v-model.number="form.oneri_finanziari" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Interessi passivi annui</p>
+          </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Debiti vs Fornitori</label>
             <div class="relative">
@@ -84,104 +113,149 @@
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti INPS</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti vs Banche Breve</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.debiti_inps" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.debiti_banche_breve" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti Erario (IVA, IRPEF)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti vs Banche M/L</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.debiti_erario" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti Finanziari Breve</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.debiti_finanziari_breve" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Rate prossimi 12 mesi</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Debiti Finanziari Lungo</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.debiti_finanziari_lungo" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Rate Mensili Finanziamenti</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.rate_finanziamenti_mensili" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.debiti_banche_lungo" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Costi Mensili -->
+      <!-- SEZIONE 3: CONTO ECONOMICO -->
       <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Icon name="heroicons:calculator" class="w-5 h-5 text-blue-600" />
-          Costi Mensili
+        <h2 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+          <Icon name="heroicons:banknotes" class="w-5 h-5 text-blue-600" />
+          Conto Economico (Mensile)
         </h2>
+        <p class="text-xs text-gray-500 mb-4">Per calcolo Cash Flow, Margine Lordo, DSCR</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Costi Fissi</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ricavi Totali *</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.costi_fissi_mensili" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.totale_ricavi" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
-            <p class="text-xs text-gray-500 mt-1">Affitto, utenze, assicurazioni</p>
+            <p class="text-xs text-gray-400 mt-1">Fatturato del mese</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Costo Personale</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Costi Materie Prime</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.costo_personale_mensile" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.costi_materie_prime" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
             </div>
+            <p class="text-xs text-gray-400 mt-1">Materiali, consumabili</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Costi Variabili</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Costi Servizi</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.costi_variabili_mensili" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.costi_servizi" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
             </div>
-            <p class="text-xs text-gray-500 mt-1">Materiali, consumabili</p>
+            <p class="text-xs text-gray-400 mt-1">Affitti, utenze, consulenze</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Interessi Passivi</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Costo Personale *</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.interessi_passivi_mensili" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.costi_personale" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
+            <p class="text-xs text-gray-400 mt-1">Stipendi + contributi</p>
           </div>
         </div>
       </div>
 
-      <!-- Ricavi -->
+      <!-- SEZIONE 4: CREDITI -->
       <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Icon name="heroicons:banknotes" class="w-5 h-5 text-blue-600" />
-          Ricavi
+        <h2 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+          <Icon name="heroicons:clipboard-document-list" class="w-5 h-5 text-blue-600" />
+          Crediti
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p class="text-xs text-gray-500 mb-4">Per calcolo DSO e Crediti Scaduti</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Fatturato Mensile</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Crediti vs Clienti *</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.fatturato_mensile" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.crediti_vs_clienti" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required />
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Crediti vs Clienti</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Crediti Scaduti > 90gg</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-gray-500">€</span>
-              <input v-model.number="form.crediti_clienti" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+              <input v-model.number="form.crediti_scaduti_90gg" type="number" step="0.01" class="w-full px-3 py-2 pl-8 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
             </div>
+            <p class="text-xs text-gray-400 mt-1">Per % crediti scaduti</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEZIONE 5: KPI SETTORIALI STUDIO DENTISTICO -->
+      <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+          <Icon name="heroicons:building-office-2" class="w-5 h-5 text-purple-600" />
+          Dati Operativi Studio
+        </h2>
+        <p class="text-xs text-gray-500 mb-4">Per KPI settoriali (opzionali ma consigliati)</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Numero Poltrone</label>
+            <input v-model.number="form.numero_poltrone" type="number" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Poltrone operative</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ore Agenda Disponibili</label>
+            <input v-model.number="form.ore_disponibili" type="number" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Ore totali mese</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Ore Appuntamenti</label>
+            <input v-model.number="form.ore_appuntamenti" type="number" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Ore effettive occupate</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pazienti Attivi</label>
+            <input v-model.number="form.pazienti_attivi" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Con trattamento in corso</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Preventivi Presentati</label>
+            <input v-model.number="form.preventivi_presentati" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Preventivi Accettati</label>
+            <input v-model.number="form.preventivi_accettati" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nuovi Pazienti</label>
+            <input v-model.number="form.pazienti_nuovi" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Prima visita questo mese</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Appuntamenti No-Show</label>
+            <input v-model.number="form.appuntamenti_no_show" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Non presentati</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Appuntamenti Totali</label>
+            <input v-model.number="form.appuntamenti_totali" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pazienti Recall</label>
+            <input v-model.number="form.pazienti_recall" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
+            <p class="text-xs text-gray-400 mt-1">Tornati per igiene/controllo</p>
           </div>
         </div>
       </div>
@@ -239,6 +313,7 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
 const config = useRuntimeConfig()
 
 const selectedAnno = ref(new Date().getFullYear())
@@ -276,22 +351,38 @@ const periodoLabel = computed(() => {
 })
 
 const form = reactive({
+  // Stato Patrimoniale (obbligatori CNDCEC)
   patrimonio_netto: null as number | null,
   totale_attivo: null as number | null,
-  attivita_correnti: null as number | null,
-  passivita_correnti: null as number | null,
+  attivo_circolante: null as number | null,
+  debiti_breve_termine: null as number | null,
+  // Debiti
+  debiti_totali: null as number | null,
+  debiti_tributari: null as number | null,
+  oneri_finanziari: null as number | null,
   debiti_fornitori: null as number | null,
-  debiti_inps: null as number | null,
-  debiti_erario: null as number | null,
-  debiti_finanziari_breve: null as number | null,
-  debiti_finanziari_lungo: null as number | null,
-  rate_finanziamenti_mensili: null as number | null,
-  costi_fissi_mensili: null as number | null,
-  costo_personale_mensile: null as number | null,
-  costi_variabili_mensili: null as number | null,
-  interessi_passivi_mensili: null as number | null,
-  fatturato_mensile: null as number | null,
-  crediti_clienti: null as number | null,
+  debiti_banche_breve: null as number | null,
+  debiti_banche_lungo: null as number | null,
+  // Conto Economico
+  totale_ricavi: null as number | null,
+  costi_materie_prime: null as number | null,
+  costi_servizi: null as number | null,
+  costi_personale: null as number | null,
+  // Crediti
+  crediti_vs_clienti: null as number | null,
+  crediti_scaduti_90gg: null as number | null,
+  // KPI Settoriali Studio
+  numero_poltrone: null as number | null,
+  ore_disponibili: null as number | null,
+  ore_appuntamenti: null as number | null,
+  pazienti_attivi: null as number | null,
+  preventivi_presentati: null as number | null,
+  preventivi_accettati: null as number | null,
+  pazienti_nuovi: null as number | null,
+  appuntamenti_no_show: null as number | null,
+  appuntamenti_totali: null as number | null,
+  pazienti_recall: null as number | null,
+  // Note
   note: '',
 })
 
@@ -344,9 +435,9 @@ const salva = async () => {
   errorMessage.value = ''
 
   try {
-    // Get azienda_id from user data
+    // Get azienda_id from user data or route query
     const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-    const aziendaId = user.azienda_id || 1
+    const aziendaId = route.query.azienda ? Number(route.query.azienda) : (user.azienda_id || 1)
 
     const response = await $fetch<{ success: boolean; message: string }>(
       `${config.public.apiBase}/dati-economici`,
@@ -387,6 +478,9 @@ const salva = async () => {
 }
 
 onMounted(() => {
+  // Check for query params
+  if (route.query.anno) selectedAnno.value = Number(route.query.anno)
+  if (route.query.mese) selectedMese.value = Number(route.query.mese)
   loadExistingData()
 })
 </script>

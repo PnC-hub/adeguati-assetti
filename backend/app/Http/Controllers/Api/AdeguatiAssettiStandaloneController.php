@@ -11,6 +11,24 @@ use Carbon\Carbon;
 class AdeguatiAssettiStandaloneController extends Controller
 {
     /**
+     * Soglie CNDCEC per settore ATECO
+     * Formato: [OF_RIC, PN_DEB, CF_ATT, CR, DEBFISC_ATT]
+     */
+    private const SOGLIE_SETTORIALI = [
+        'A' => ['of_ric' => 2.8, 'pn_deb' => 9.4, 'cf_att' => 0.3, 'cr' => 92.1, 'debfisc_att' => 5.6],
+        'B-D' => ['of_ric' => 3.0, 'pn_deb' => 7.6, 'cf_att' => 0.5, 'cr' => 93.7, 'debfisc_att' => 4.9],
+        'E' => ['of_ric' => 2.6, 'pn_deb' => 6.7, 'cf_att' => 1.9, 'cr' => 84.2, 'debfisc_att' => 6.5],
+        'F41' => ['of_ric' => 3.8, 'pn_deb' => 4.9, 'cf_att' => 0.4, 'cr' => 108.0, 'debfisc_att' => 3.8],
+        'F42-F43' => ['of_ric' => 2.8, 'pn_deb' => 5.3, 'cf_att' => 1.4, 'cr' => 101.1, 'debfisc_att' => 5.3],
+        'G45-G46' => ['of_ric' => 2.1, 'pn_deb' => 6.3, 'cf_att' => 0.6, 'cr' => 101.4, 'debfisc_att' => 2.9],
+        'G47-I56' => ['of_ric' => 1.5, 'pn_deb' => 4.2, 'cf_att' => 1.0, 'cr' => 89.8, 'debfisc_att' => 7.8],
+        'H-I55' => ['of_ric' => 1.5, 'pn_deb' => 4.1, 'cf_att' => 1.4, 'cr' => 86.0, 'debfisc_att' => 10.2],
+        'JMN' => ['of_ric' => 1.8, 'pn_deb' => 5.2, 'cf_att' => 1.7, 'cr' => 95.4, 'debfisc_att' => 11.9],
+        'PQRS' => ['of_ric' => 2.7, 'pn_deb' => 2.3, 'cf_att' => 0.5, 'cr' => 69.8, 'debfisc_att' => 14.6], // Servizi sanitari
+        'DEFAULT' => ['of_ric' => 2.5, 'pn_deb' => 5.0, 'cf_att' => 1.0, 'cr' => 90.0, 'debfisc_att' => 8.0],
+    ];
+
+    /**
      * Dashboard per utente standalone
      */
     public function dashboard(Request $request): JsonResponse
@@ -155,19 +173,39 @@ class AdeguatiAssettiStandaloneController extends Controller
                 'mese' => $request->mese,
             ],
             [
+                // Stato Patrimoniale
+                'patrimonio_netto' => $request->patrimonio_netto,
+                'totale_attivo' => $request->totale_attivo,
+                'attivo_circolante' => $request->attivo_circolante,
+                'debiti_breve_termine' => $request->debiti_breve_termine,
+                // Debiti
+                'debiti_totali' => $request->debiti_totali,
+                'debiti_tributari' => $request->debiti_tributari,
+                'oneri_finanziari' => $request->oneri_finanziari,
+                'debiti_vs_fornitori' => $request->debiti_fornitori,
+                'debiti_banche_breve' => $request->debiti_banche_breve,
+                'debiti_banche_lungo' => $request->debiti_banche_lungo,
+                // Conto Economico
                 'totale_ricavi' => $request->totale_ricavi,
                 'costi_materie_prime' => $request->costi_materie_prime,
                 'costi_servizi' => $request->costi_servizi,
                 'costi_personale' => $request->costi_personale,
-                'altri_costi_operativi' => $request->altri_costi_operativi,
-                'oneri_finanziari' => $request->oneri_finanziari,
-                'patrimonio_netto' => $request->patrimonio_netto,
-                'debiti_totali' => $request->debiti_totali,
-                'debiti_breve_termine' => $request->debiti_breve_termine,
-                'debiti_tributari' => $request->debiti_tributari,
-                'totale_attivo' => $request->totale_attivo,
-                'attivo_circolante' => $request->attivo_circolante,
+                // Crediti
                 'crediti_vs_clienti' => $request->crediti_vs_clienti,
+                'crediti_scaduti_90gg' => $request->crediti_scaduti_90gg,
+                // KPI Settoriali Studio
+                'numero_poltrone' => $request->numero_poltrone,
+                'ore_disponibili' => $request->ore_disponibili,
+                'ore_appuntamenti' => $request->ore_appuntamenti,
+                'pazienti_attivi' => $request->pazienti_attivi,
+                'preventivi_presentati' => $request->preventivi_presentati,
+                'preventivi_accettati' => $request->preventivi_accettati,
+                'pazienti_nuovi' => $request->pazienti_nuovi,
+                'appuntamenti_no_show' => $request->appuntamenti_no_show,
+                'appuntamenti_totali' => $request->appuntamenti_totali,
+                'pazienti_recall' => $request->pazienti_recall,
+                // Meta
+                'note' => $request->note,
                 'updated_at' => now(),
             ]
         );
@@ -179,7 +217,7 @@ class AdeguatiAssettiStandaloneController extends Controller
     }
 
     /**
-     * Calcola KPI dal dati economici
+     * Calcola KPI dal dati economici - Sistema gerarchico CNDCEC
      */
     public function calcolaKpi(Request $request): JsonResponse
     {
@@ -214,14 +252,28 @@ class AdeguatiAssettiStandaloneController extends Controller
             return response()->json(['success' => false, 'message' => 'Inserire prima i dati economici'], 400);
         }
 
+        // Recupera soglie settoriali (default PQRS per studi dentistici)
+        $settore = $azienda->codice_ateco ?? 'PQRS';
+        $soglie = self::SOGLIE_SETTORIALI[$settore] ?? self::SOGLIE_SETTORIALI['DEFAULT'];
+
         // Recupera definizioni KPI
         $kpiDefs = DB::table('aa_kpi_definizioni')->where('attivo', true)->get();
 
         $risultati = [];
+        $alertCritico = false;
+
+        // STEP 1: Verifica Patrimonio Netto (primo controllo gerarchico)
+        $pn = $dati->patrimonio_netto ?? 0;
+        if ($pn < 0) {
+            $alertCritico = true;
+        }
 
         foreach ($kpiDefs as $kpi) {
-            $valore = $this->calcolaValore($kpi->codice, $dati);
-            $stato = $this->determinaStato($valore, $kpi);
+            $valore = $this->calcolaValore($kpi->codice, $dati, $soglie);
+            $stato = $this->determinaStato($valore, $kpi, $soglie);
+
+            // Calcola delta vs mese precedente
+            $delta = $this->calcolaDelta($azienda->id, $kpi->codice, $valore, $request->anno, $request->mese);
 
             // Salva valore
             DB::table('aa_kpi_valori')->updateOrInsert(
@@ -234,11 +286,12 @@ class AdeguatiAssettiStandaloneController extends Controller
                 [
                     'valore' => $valore,
                     'stato' => $stato,
+                    'delta_precedente' => $delta,
                     'calcolato_il' => now(),
                 ]
             );
 
-            // Genera alert se critico
+            // Genera alert se critico o attenzione
             if ($stato === 'rosso' || $stato === 'giallo') {
                 DB::table('aa_alert')->updateOrInsert(
                     [
@@ -249,12 +302,20 @@ class AdeguatiAssettiStandaloneController extends Controller
                     ],
                     [
                         'livello' => $stato === 'rosso' ? 'critical' : 'warning',
-                        'messaggio' => $this->getMessaggioAlert($kpi, $valore),
+                        'messaggio' => $this->getMessaggioAlert($kpi, $valore, $stato),
                         'azione_suggerita' => $this->getAzioneSuggerita($kpi->codice),
                         'letto' => false,
                         'created_at' => now(),
                     ]
                 );
+            } else {
+                // Rimuovi alert se ora è verde
+                DB::table('aa_alert')
+                    ->where('azienda_id', $azienda->id)
+                    ->where('kpi_codice', $kpi->codice)
+                    ->where('anno', $request->anno)
+                    ->where('mese', $request->mese)
+                    ->delete();
             }
 
             $risultati[] = [
@@ -262,6 +323,7 @@ class AdeguatiAssettiStandaloneController extends Controller
                 'nome' => $kpi->nome,
                 'valore' => $valore,
                 'stato' => $stato,
+                'delta' => $delta,
             ];
         }
 
@@ -392,71 +454,205 @@ class AdeguatiAssettiStandaloneController extends Controller
         return DB::table('aa_users')->where('id', $tokenRecord->user_id)->first();
     }
 
-    private function calcolaValore(string $codice, $dati): ?float
+    /**
+     * Calcola valore KPI con formule corrette CNDCEC
+     */
+    private function calcolaValore(string $codice, $dati, array $soglie): ?float
     {
         switch ($codice) {
+            // KPI OBBLIGATORI CNDCEC
             case 'PN':
                 return $dati->patrimonio_netto ?? null;
 
             case 'DSCR':
+                // DSCR = Cash Flow Operativo / (Debiti Breve + Oneri Finanziari)
                 $cashFlow = ($dati->totale_ricavi ?? 0) - ($dati->costi_materie_prime ?? 0)
                     - ($dati->costi_servizi ?? 0) - ($dati->costi_personale ?? 0);
-                return ($dati->debiti_breve_termine ?? 0) > 0
-                    ? $cashFlow / $dati->debiti_breve_termine : null;
+                $debitoServizio = ($dati->debiti_breve_termine ?? 0) + ($dati->oneri_finanziari ?? 0);
+                return $debitoServizio > 0 ? round($cashFlow / $debitoServizio, 2) : null;
 
             case 'CR':
+                // Current Ratio = Attivo Circolante / Debiti Breve Termine (in %)
                 return ($dati->debiti_breve_termine ?? 0) > 0
-                    ? ($dati->attivo_circolante ?? 0) / $dati->debiti_breve_termine : null;
+                    ? round((($dati->attivo_circolante ?? 0) / $dati->debiti_breve_termine) * 100, 1) : null;
 
             case 'OF_RIC':
+                // Oneri Finanziari / Ricavi (%)
                 return ($dati->totale_ricavi ?? 0) > 0
-                    ? (($dati->oneri_finanziari ?? 0) / $dati->totale_ricavi) * 100 : null;
+                    ? round((($dati->oneri_finanziari ?? 0) / $dati->totale_ricavi) * 100, 2) : null;
 
             case 'PN_DEB':
+                // Patrimonio Netto / Debiti Totali (%)
                 return ($dati->debiti_totali ?? 0) > 0
-                    ? ($dati->patrimonio_netto ?? 0) / $dati->debiti_totali : null;
+                    ? round((($dati->patrimonio_netto ?? 0) / $dati->debiti_totali) * 100, 2) : null;
 
             case 'CF_ATT':
+                // Cash Flow / Totale Attivo (%)
                 $cashFlow = ($dati->totale_ricavi ?? 0) - ($dati->costi_materie_prime ?? 0)
                     - ($dati->costi_servizi ?? 0) - ($dati->costi_personale ?? 0);
                 return ($dati->totale_attivo ?? 0) > 0
-                    ? ($cashFlow / $dati->totale_attivo) * 100 : null;
+                    ? round(($cashFlow / $dati->totale_attivo) * 100, 2) : null;
 
             case 'DEBFISC_ATT':
+                // Debiti Tributari / Totale Attivo (%)
                 return ($dati->totale_attivo ?? 0) > 0
-                    ? (($dati->debiti_tributari ?? 0) / $dati->totale_attivo) * 100 : null;
+                    ? round((($dati->debiti_tributari ?? 0) / $dati->totale_attivo) * 100, 2) : null;
 
+            case 'DEB_SCAD_TOT':
+                // Debiti scaduti totali (placeholder - da implementare con gestione scadenze)
+                return 0;
+
+            // KPI SETTORIALI
             case 'MARG_LORDO':
+                // Margine Lordo % = (Ricavi - Materie - Servizi) / Ricavi * 100
                 $margine = ($dati->totale_ricavi ?? 0) - ($dati->costi_materie_prime ?? 0) - ($dati->costi_servizi ?? 0);
                 return ($dati->totale_ricavi ?? 0) > 0
-                    ? ($margine / $dati->totale_ricavi) * 100 : null;
+                    ? round(($margine / $dati->totale_ricavi) * 100, 1) : null;
+
+            case 'OCC_POLT':
+                // Occupazione Poltrone % = Ore Appuntamenti / Ore Disponibili * 100
+                return ($dati->ore_disponibili ?? 0) > 0
+                    ? round((($dati->ore_appuntamenti ?? 0) / $dati->ore_disponibili) * 100, 1) : null;
 
             case 'DSO':
-                return ($dati->totale_ricavi ?? 0) > 0
-                    ? (($dati->crediti_vs_clienti ?? 0) / $dati->totale_ricavi) * 30 : null;
+                // Days Sales Outstanding = (Crediti Clienti / Ricavi Annualizzati) * 365
+                $ricaviAnnui = ($dati->totale_ricavi ?? 0) * 12;
+                return $ricaviAnnui > 0
+                    ? round((($dati->crediti_vs_clienti ?? 0) / $ricaviAnnui) * 365, 0) : null;
+
+            case 'FATT_POLT':
+                // Fatturato per Poltrona = Ricavi / Numero Poltrone
+                return ($dati->numero_poltrone ?? 0) > 0
+                    ? round(($dati->totale_ricavi ?? 0) / $dati->numero_poltrone, 0) : null;
+
+            case 'CONV_PREV':
+                // Conversione Preventivi % = Accettati / Presentati * 100
+                return ($dati->preventivi_presentati ?? 0) > 0
+                    ? round((($dati->preventivi_accettati ?? 0) / $dati->preventivi_presentati) * 100, 1) : null;
+
+            case 'CRED_SCAD':
+                // Crediti Scaduti % = Crediti Scaduti 90gg / Crediti Totali * 100
+                return ($dati->crediti_vs_clienti ?? 0) > 0
+                    ? round((($dati->crediti_scaduti_90gg ?? 0) / $dati->crediti_vs_clienti) * 100, 1) : null;
 
             case 'CPERS_FATT':
+                // Costo Personale / Fatturato %
                 return ($dati->totale_ricavi ?? 0) > 0
-                    ? (($dati->costi_personale ?? 0) / $dati->totale_ricavi) * 100 : null;
+                    ? round((($dati->costi_personale ?? 0) / $dati->totale_ricavi) * 100, 1) : null;
+
+            // KPI OPERATIVI
+            case 'NEW_PAZ':
+                return $dati->pazienti_nuovi ?? null;
+
+            case 'NO_SHOW':
+                // No Show % = No Show / Appuntamenti Totali * 100
+                return ($dati->appuntamenti_totali ?? 0) > 0
+                    ? round((($dati->appuntamenti_no_show ?? 0) / $dati->appuntamenti_totali) * 100, 1) : null;
+
+            case 'RECALL':
+                // Tasso Recall % = Pazienti Recall / Pazienti Attivi * 100
+                return ($dati->pazienti_attivi ?? 0) > 0
+                    ? round((($dati->pazienti_recall ?? 0) / $dati->pazienti_attivi) * 100, 1) : null;
+
+            case 'TICK_MED':
+                // Ticket Medio = Ricavi / Pazienti Attivi
+                return ($dati->pazienti_attivi ?? 0) > 0
+                    ? round(($dati->totale_ricavi ?? 0) / $dati->pazienti_attivi, 0) : null;
+
+            case 'EBITDA_MARG':
+                // EBITDA Margin = EBITDA / Ricavi * 100
+                $ebitda = ($dati->totale_ricavi ?? 0) - ($dati->costi_materie_prime ?? 0)
+                    - ($dati->costi_servizi ?? 0) - ($dati->costi_personale ?? 0);
+                return ($dati->totale_ricavi ?? 0) > 0
+                    ? round(($ebitda / $dati->totale_ricavi) * 100, 1) : null;
+
+            case 'ROE':
+                // ROE = Risultato Netto / Patrimonio Netto * 100 (annualizzato)
+                $risultato = ($dati->totale_ricavi ?? 0) - ($dati->costi_materie_prime ?? 0)
+                    - ($dati->costi_servizi ?? 0) - ($dati->costi_personale ?? 0) - ($dati->oneri_finanziari ?? 0);
+                return ($dati->patrimonio_netto ?? 0) > 0
+                    ? round(($risultato * 12 / $dati->patrimonio_netto) * 100, 1) : null;
+
+            case 'NPS':
+                // NPS - placeholder (da implementare con survey)
+                return null;
 
             default:
                 return null;
         }
     }
 
-    private function determinaStato(?float $valore, $kpi): string
+    /**
+     * Determina stato KPI con soglie settoriali CNDCEC
+     */
+    private function determinaStato(?float $valore, $kpi, array $soglie): string
     {
         if ($valore === null) return 'nd';
 
+        // Usa soglie settoriali per KPI CNDCEC obbligatori
+        $sogliaVerde = $kpi->soglia_verde;
+        $sogliaGialla = $kpi->soglia_gialla;
+
+        // Override con soglie CNDCEC per KPI obbligatori
+        switch ($kpi->codice) {
+            case 'OF_RIC':
+                $sogliaVerde = $soglie['of_ric'] * 0.7; // 70% della soglia alert
+                $sogliaGialla = $soglie['of_ric'];
+                break;
+            case 'PN_DEB':
+                $sogliaVerde = $soglie['pn_deb'] * 1.5;
+                $sogliaGialla = $soglie['pn_deb'];
+                break;
+            case 'CF_ATT':
+                $sogliaVerde = $soglie['cf_att'] * 2;
+                $sogliaGialla = $soglie['cf_att'];
+                break;
+            case 'CR':
+                $sogliaVerde = $soglie['cr'] * 1.2;
+                $sogliaGialla = $soglie['cr'];
+                break;
+            case 'DEBFISC_ATT':
+                $sogliaVerde = $soglie['debfisc_att'] * 0.5;
+                $sogliaGialla = $soglie['debfisc_att'];
+                break;
+        }
+
         if ($kpi->direzione === 'maggiore') {
-            if ($valore >= $kpi->soglia_verde) return 'verde';
-            if ($valore >= $kpi->soglia_gialla) return 'giallo';
+            if ($valore >= $sogliaVerde) return 'verde';
+            if ($valore >= $sogliaGialla) return 'giallo';
             return 'rosso';
         } else {
-            if ($valore <= $kpi->soglia_verde) return 'verde';
-            if ($valore <= $kpi->soglia_gialla) return 'giallo';
+            if ($valore <= $sogliaVerde) return 'verde';
+            if ($valore <= $sogliaGialla) return 'giallo';
             return 'rosso';
         }
+    }
+
+    /**
+     * Calcola delta vs mese precedente
+     */
+    private function calcolaDelta(int $aziendaId, string $codice, ?float $valoreAttuale, int $anno, int $mese): ?float
+    {
+        if ($valoreAttuale === null) return null;
+
+        // Calcola mese precedente
+        $mesePrecedente = $mese - 1;
+        $annoPrecedente = $anno;
+        if ($mesePrecedente < 1) {
+            $mesePrecedente = 12;
+            $annoPrecedente--;
+        }
+
+        $valorePrecedente = DB::table('aa_kpi_valori')
+            ->where('azienda_id', $aziendaId)
+            ->where('kpi_codice', $codice)
+            ->where('anno', $annoPrecedente)
+            ->where('mese', $mesePrecedente)
+            ->value('valore');
+
+        if ($valorePrecedente === null || $valorePrecedente == 0) return null;
+
+        return round((($valoreAttuale - $valorePrecedente) / abs($valorePrecedente)) * 100, 1);
     }
 
     private function calcolaScore($kpiValori): int
@@ -480,20 +676,31 @@ class AdeguatiAssettiStandaloneController extends Controller
         return $max > 0 ? round(($punti / $max) * 100) : 0;
     }
 
-    private function getMessaggioAlert($kpi, ?float $valore): string
+    private function getMessaggioAlert($kpi, ?float $valore, string $stato): string
     {
-        $valoreStr = $valore !== null ? number_format($valore, 2) : 'N/D';
-        return "{$kpi->nome}: {$valoreStr} - richiede attenzione";
+        $valoreStr = $valore !== null ? number_format($valore, 2, ',', '.') : 'N/D';
+        $livello = $stato === 'rosso' ? 'CRITICO' : 'ATTENZIONE';
+        return "[{$livello}] {$kpi->nome}: {$valoreStr} {$kpi->unita_misura}";
     }
 
     private function getAzioneSuggerita(string $codice): string
     {
         $azioni = [
-            'DSCR' => 'Accelerare incassi, rinegoziare debiti',
-            'DSO' => 'Sollecitare crediti, rivedere condizioni pagamento',
-            'PN' => 'Valutare ricapitalizzazione',
-            'CR' => 'Migliorare gestione liquidita',
-            'OF_RIC' => 'Rinegoziare condizioni finanziarie',
+            'PN' => 'Valutare ricapitalizzazione o copertura perdite',
+            'DSCR' => 'Accelerare incassi, rinegoziare debiti, tagliare costi non essenziali',
+            'CR' => 'Migliorare gestione liquidita, convertire attivi in liquidita',
+            'OF_RIC' => 'Rinegoziare condizioni finanziamenti, ridurre indebitamento',
+            'PN_DEB' => 'Rafforzare patrimonio, ridurre debiti',
+            'CF_ATT' => 'Migliorare margini operativi, ottimizzare capitale circolante',
+            'DEBFISC_ATT' => 'Regolarizzare posizione fiscale, pianificare rateizzazioni',
+            'DSO' => 'Sollecitare crediti, rivedere condizioni pagamento clienti',
+            'MARG_LORDO' => 'Rivedere listino prezzi, ottimizzare costi diretti',
+            'OCC_POLT' => 'Ottimizzare agenda, aumentare marketing acquisizione',
+            'CONV_PREV' => 'Migliorare presentazione preventivi, formazione staff',
+            'CRED_SCAD' => 'Intensificare solleciti, valutare azioni legali',
+            'CPERS_FATT' => 'Ottimizzare organico, aumentare produttivita',
+            'NO_SHOW' => 'Implementare sistema reminder, politica no-show',
+            'RECALL' => 'Attivare campagne recall, migliorare follow-up',
         ];
         return $azioni[$codice] ?? 'Monitorare e analizzare le cause';
     }
