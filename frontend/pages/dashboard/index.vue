@@ -11,6 +11,21 @@
           <p class="text-gray-500">Cruscotto salute aziendale - {{ periodoLabel }}</p>
         </div>
       </div>
+
+      <!-- Selettore Azienda (solo se più di una) -->
+      <div v-if="aziende.length > 1" class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Seleziona Azienda</label>
+        <select
+          v-model="selectedAziendaId"
+          class="w-full md:w-auto min-w-[300px] px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
+          @change="onAziendaChange"
+        >
+          <option v-for="az in aziende" :key="az.id" :value="az.id">
+            {{ az.nome }} <span v-if="az.settore">- {{ az.settore }}</span>
+          </option>
+        </select>
+      </div>
+
       <div class="flex justify-end gap-3">
         <select v-model="selectedMese" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" @change="loadDashboard">
           <option v-for="m in mesi" :key="m.value" :value="m.value">{{ m.label }}</option>
@@ -159,6 +174,15 @@ const selectedMese = ref(new Date().getMonth() + 1)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+// Aziende management
+interface Azienda {
+  id: number
+  nome: string
+  settore?: string
+}
+const aziende = ref<Azienda[]>([])
+const selectedAziendaId = ref<number | null>(null)
+
 const anni = computed(() => {
   const current = new Date().getFullYear()
   return [current - 2, current - 1, current, current + 1]
@@ -227,13 +251,36 @@ const getAuthHeaders = () => {
   }
 }
 
+const onAziendaChange = () => {
+  loadDashboard()
+}
+
+const loadAziende = async () => {
+  try {
+    const response = await $fetch<{ success: boolean; data: { aziende: Azienda[] } }>(
+      `${config.public.apiBase}/auth/me`,
+      { headers: getAuthHeaders() }
+    )
+    if (response.success && response.data.aziende) {
+      aziende.value = response.data.aziende
+      // Set default azienda if not already set
+      if (!selectedAziendaId.value && aziende.value.length > 0) {
+        const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
+        selectedAziendaId.value = user.azienda_id || aziende.value[0].id
+      }
+    }
+  } catch (e) {
+    console.error('Errore caricamento aziende:', e)
+  }
+}
+
 const loadDashboard = async () => {
   loading.value = true
   error.value = null
 
-  // Get azienda_id from user data
+  // Get azienda_id from selection or user data
   const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-  const aziendaId = user.azienda_id || 5
+  const aziendaId = selectedAziendaId.value || user.azienda_id || 5
 
   try {
     const response = await $fetch<{ success: boolean; data: DashboardData }>(
@@ -277,9 +324,9 @@ const ricalcola = async () => {
   loading.value = true
   error.value = null
 
-  // Get azienda_id from user data
+  // Get azienda_id from selection or user data
   const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-  const aziendaId = user.azienda_id || 5
+  const aziendaId = selectedAziendaId.value || user.azienda_id || 5
 
   try {
     await $fetch(`${config.public.apiBase}/calcola`, {
@@ -319,7 +366,8 @@ const goToDetail = (codice: string) => {
   router.push(`/dashboard/kpi/${codice}`)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadAziende()
   loadDashboard()
 })
 </script>
