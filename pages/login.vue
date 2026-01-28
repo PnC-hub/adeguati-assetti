@@ -95,9 +95,9 @@ const config = useRuntimeConfig()
 
 // Demo credentials mapping
 const demoCredentials: Record<string, { email: string; password: string }> = {
-  sana: { email: 'demo.sana@adeguatiassetti.it', password: 'Demo2025!' },
-  critica: { email: 'demo.critica@adeguatiassetti.it', password: 'Demo2025!' },
-  studio: { email: 'demo.studio@adeguatiassetti.it', password: 'Demo2025!' }
+  sana: { email: 'demo.sana@adeguatiassetti.it', password: 'DemoPass2025' },
+  critica: { email: 'demo.critica@adeguatiassetti.it', password: 'DemoPass2025' },
+  studio: { email: 'demo.studio@adeguatiassetti.it', password: 'DemoPass2025' }
 }
 
 const form = reactive({
