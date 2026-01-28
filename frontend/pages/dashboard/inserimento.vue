@@ -14,6 +14,19 @@
           <p class="text-gray-500">Dati per il calcolo degli indicatori di salute aziendale</p>
         </div>
       </div>
+      <!-- Settore ATECO -->
+      <div v-if="aziendaNome" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <Icon name="heroicons:building-office" class="w-5 h-5 text-blue-600" />
+          <span class="font-medium text-blue-800">{{ aziendaNome }}</span>
+          <span v-if="aziendaAteco" class="text-sm text-blue-600">(ATECO: {{ aziendaAteco }})</span>
+        </div>
+        <select v-model="selectedAteco" @change="salvaAteco" class="px-3 py-1.5 text-sm border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+          <option value="">-- Seleziona settore ATECO --</option>
+          <option v-for="s in settoriAteco" :key="s.codice" :value="s.codice">{{ s.codice }} - {{ s.label }}</option>
+        </select>
+      </div>
+
       <div class="flex justify-end gap-3">
         <select v-model="selectedMese" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-40" @change="loadExistingData">
           <option v-for="m in mesi" :key="m.value" :value="m.value">{{ m.label }}</option>
@@ -198,13 +211,13 @@
         </div>
       </div>
 
-      <!-- SEZIONE 5: KPI SETTORIALI STUDIO DENTISTICO -->
-      <div class="bg-white rounded-xl shadow p-6">
+      <!-- SEZIONE 5: KPI SETTORIALI STUDIO DENTISTICO (solo se ATECO sanitario) -->
+      <div v-if="isSanitario" class="bg-white rounded-xl shadow p-6">
         <h2 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
           <Icon name="heroicons:building-office-2" class="w-5 h-5 text-purple-600" />
           Dati Operativi Studio
         </h2>
-        <p class="text-xs text-gray-500 mb-4">Per KPI settoriali (opzionali ma consigliati)</p>
+        <p class="text-xs text-gray-500 mb-4">Per KPI settoriali studio dentistico/sanitario</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Numero Poltrone</label>
@@ -324,6 +337,38 @@ const successMessage = ref('')
 const errorMessage = ref('')
 const existingDataId = ref<number | null>(null)
 const lastUpdate = ref('')
+const aziendaNome = ref('')
+const aziendaAteco = ref('')
+const selectedAteco = ref('')
+const currentAziendaId = ref<number | null>(null)
+
+const isSanitario = computed(() => {
+  const ateco = selectedAteco.value || aziendaAteco.value
+  return ateco.startsWith('86') || ateco.startsWith('87') || ateco.startsWith('88')
+})
+
+const settoriAteco = [
+  { codice: '01.11', label: 'Agricoltura - Cereali' },
+  { codice: '10.71', label: 'Alimentare - Panificazione' },
+  { codice: '25.11', label: 'Metalmeccanica' },
+  { codice: '41.20', label: 'Edilizia - Costruzione edifici' },
+  { codice: '43.21', label: 'Costruzioni - Impianti elettrici' },
+  { codice: '45.11', label: 'Commercio autoveicoli' },
+  { codice: '46.49', label: 'Commercio ingrosso' },
+  { codice: '47.11', label: 'Commercio dettaglio alimentari' },
+  { codice: '47.73', label: 'Commercio dettaglio farmaci' },
+  { codice: '49.41', label: 'Trasporto merci' },
+  { codice: '55.10', label: 'Alberghi' },
+  { codice: '56.10', label: 'Ristorazione' },
+  { codice: '62.01', label: 'Software e consulenza informatica' },
+  { codice: '69.20', label: 'Studi commercialisti e consulenza' },
+  { codice: '71.12', label: 'Studi ingegneria' },
+  { codice: '86.10', label: 'Servizi ospedalieri' },
+  { codice: '86.21', label: 'Servizi medici generici' },
+  { codice: '86.23', label: 'Studi odontoiatrici' },
+  { codice: '86.90', label: 'Altri servizi sanitari' },
+  { codice: '96.02', label: 'Parrucchieri e trattamenti estetici' },
+]
 
 const anni = computed(() => {
   const current = new Date().getFullYear()
@@ -477,10 +522,46 @@ const salva = async () => {
   }
 }
 
+const salvaAteco = async () => {
+  if (!currentAziendaId.value || !selectedAteco.value) return
+  try {
+    await $fetch(`${config.public.apiBase}/aziende/${currentAziendaId.value}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: { codice_ateco: selectedAteco.value }
+    })
+    aziendaAteco.value = selectedAteco.value
+  } catch (e) {
+    console.error('Errore salvataggio ATECO:', e)
+  }
+}
+
+const loadAziendaInfo = async () => {
+  try {
+    const response = await $fetch<{ success: boolean; data: any[] }>(
+      `${config.public.apiBase}/aziende`,
+      { headers: getAuthHeaders() }
+    )
+    if (response.success && response.data.length > 0) {
+      const aziendaIdParam = route.query.azienda ? Number(route.query.azienda) : null
+      const az = aziendaIdParam
+        ? response.data.find(a => a.id === aziendaIdParam) || response.data[0]
+        : response.data[0]
+      aziendaNome.value = az.nome
+      aziendaAteco.value = az.codice_ateco || ''
+      selectedAteco.value = az.codice_ateco || ''
+      currentAziendaId.value = az.id
+    }
+  } catch (e) {
+    console.error('Errore caricamento azienda:', e)
+  }
+}
+
 onMounted(() => {
   // Check for query params
   if (route.query.anno) selectedAnno.value = Number(route.query.anno)
   if (route.query.mese) selectedMese.value = Number(route.query.mese)
+  loadAziendaInfo()
   loadExistingData()
 })
 </script>

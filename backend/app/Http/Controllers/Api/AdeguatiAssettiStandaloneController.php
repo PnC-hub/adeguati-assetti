@@ -29,6 +29,107 @@ class AdeguatiAssettiStandaloneController extends Controller
     ];
 
     /**
+     * Mappa codice ATECO al gruppo settoriale CNDCEC
+     */
+    private function mapAtecoToSettore(?string $codiceAteco): string
+    {
+        if (!$codiceAteco) return 'DEFAULT';
+
+        $prefisso = substr($codiceAteco, 0, 2);
+        $prefisso2 = substr($codiceAteco, 0, 5); // es. 41.20
+
+        // Mappatura ATECO → settore CNDCEC
+        if (in_array($prefisso, ['01','02','03'])) return 'A';
+        if (in_array($prefisso, ['05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','35'])) return 'B-D';
+        if (in_array($prefisso, ['36','37','38','39'])) return 'E';
+        if ($prefisso === '41') return 'F41';
+        if (in_array($prefisso, ['42','43'])) return 'F42-F43';
+        if (in_array($prefisso, ['45','46'])) return 'G45-G46';
+        if ($prefisso === '47' || $prefisso === '56') return 'G47-I56';
+        if (in_array($prefisso, ['49','50','51','52','53','55'])) return 'H-I55';
+        if (in_array($prefisso, ['58','59','60','61','62','63','69','70','71','72','73','74','75','77','78','79','80','81','82'])) return 'JMN';
+        if (in_array($prefisso, ['84','85','86','87','88','90','91','92','93','94','95','96'])) return 'PQRS';
+
+        return 'DEFAULT';
+    }
+
+    /**
+     * Lista aziende dell'utente
+     */
+    public function listaAziende(Request $request): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        $aziende = DB::table('aa_aziende')
+            ->where('user_id', $user->id)
+            ->where('attiva', true)
+            ->select('id', 'nome', 'settore', 'codice_ateco', 'partita_iva', 'dimensione')
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $aziende]);
+    }
+
+    /**
+     * Aggiorna dati azienda (codice ATECO, settore, ecc.)
+     */
+    public function aggiornaAzienda(Request $request, int $id): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        $azienda = DB::table('aa_aziende')
+            ->where('id', $id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$azienda) {
+            return response()->json(['success' => false, 'message' => 'Azienda non trovata'], 404);
+        }
+
+        $updates = [];
+        if ($request->has('codice_ateco')) {
+            $updates['codice_ateco'] = $request->codice_ateco;
+            // Auto-imposta settore dal codice ATECO
+            $settoreLabel = $this->getSettoreLabel($request->codice_ateco);
+            if ($settoreLabel) {
+                $updates['settore'] = $settoreLabel;
+            }
+        }
+        if ($request->has('nome')) $updates['nome'] = $request->nome;
+        if ($request->has('partita_iva')) $updates['partita_iva'] = $request->partita_iva;
+
+        if (!empty($updates)) {
+            $updates['updated_at'] = now();
+            DB::table('aa_aziende')->where('id', $id)->update($updates);
+        }
+
+        $azienda = DB::table('aa_aziende')->where('id', $id)->first();
+
+        return response()->json(['success' => true, 'data' => $azienda]);
+    }
+
+    private function getSettoreLabel(?string $codiceAteco): ?string
+    {
+        if (!$codiceAteco) return null;
+        $prefisso = substr($codiceAteco, 0, 2);
+        $labels = [
+            '01' => 'Agricoltura', '02' => 'Silvicoltura', '03' => 'Pesca',
+            '10' => 'Alimentare', '25' => 'Metalmeccanica', '41' => 'Edilizia',
+            '42' => 'Ingegneria civile', '43' => 'Costruzioni specializzate',
+            '45' => 'Commercio autoveicoli', '46' => 'Commercio ingrosso', '47' => 'Commercio dettaglio',
+            '49' => 'Trasporto terrestre', '55' => 'Alloggio', '56' => 'Ristorazione',
+            '62' => 'Software e ICT', '69' => 'Studi professionali',
+            '86' => 'Servizi sanitari', '96' => 'Servizi alla persona',
+        ];
+        return $labels[$prefisso] ?? null;
+    }
+
+    /**
      * Dashboard per utente standalone
      */
     public function dashboard(Request $request): JsonResponse
@@ -252,9 +353,9 @@ class AdeguatiAssettiStandaloneController extends Controller
             return response()->json(['success' => false, 'message' => 'Inserire prima i dati economici'], 400);
         }
 
-        // Recupera soglie settoriali (default PQRS per studi dentistici)
-        $settore = $azienda->codice_ateco ?? 'PQRS';
-        $soglie = self::SOGLIE_SETTORIALI[$settore] ?? self::SOGLIE_SETTORIALI['DEFAULT'];
+        // Recupera soglie settoriali CNDCEC dal codice ATECO
+        $settoreCndcec = $this->mapAtecoToSettore($azienda->codice_ateco);
+        $soglie = self::SOGLIE_SETTORIALI[$settoreCndcec] ?? self::SOGLIE_SETTORIALI['DEFAULT'];
 
         // Recupera definizioni KPI
         $kpiDefs = DB::table('aa_kpi_definizioni')->where('attivo', true)->get();

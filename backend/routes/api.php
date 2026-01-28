@@ -26,3 +26,5 @@ Route::post('/dati-economici', [AdeguatiAssettiStandaloneController::class, 'sal
 Route::post('/calcola', [AdeguatiAssettiStandaloneController::class, 'calcolaKpi']);
 Route::get('/alert', [AdeguatiAssettiStandaloneController::class, 'listaAlert']);
 Route::get('/export', [AdeguatiAssettiStandaloneController::class, 'exportDati']);
+Route::get('/aziende', [AdeguatiAssettiStandaloneController::class, 'listaAziende']);
+Route::put('/aziende/{id}', [AdeguatiAssettiStandaloneController::class, 'aggiornaAzienda']);

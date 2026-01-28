@@ -479,6 +479,79 @@
       </div>
     </section>
 
+    <!-- Pricing -->
+    <section id="pricing" class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Scegli il piano adatto alla tua azienda</h2>
+          <p class="text-gray-600 mt-4 text-lg">Inizia gratis, scala quando vuoi</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <!-- Free -->
+          <div class="border border-gray-200 rounded-2xl p-8 hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-gray-900">Free</h3>
+            <p class="text-gray-500 mt-2">Per iniziare a monitorare</p>
+            <div class="mt-6 mb-8">
+              <span class="text-4xl font-bold text-gray-900">&euro;0</span>
+              <span class="text-gray-500">/mese</span>
+            </div>
+            <ul class="space-y-3 text-sm text-gray-600 mb-8">
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> 1 azienda</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> 7 KPI obbligatori CNDCEC</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Score di salute aziendale</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Dashboard base</li>
+              <li class="flex items-center gap-2 text-gray-400"><Icon name="heroicons:x-mark" class="w-5 h-5 flex-shrink-0" /> KPI settoriali</li>
+              <li class="flex items-center gap-2 text-gray-400"><Icon name="heroicons:x-mark" class="w-5 h-5 flex-shrink-0" /> Alert automatici</li>
+            </ul>
+            <NuxtLink to="/register" class="block text-center w-full border-2 border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+              Inizia Gratis
+            </NuxtLink>
+          </div>
+          <!-- Pro -->
+          <div class="border-2 border-blue-600 rounded-2xl p-8 shadow-lg relative">
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-sm font-bold px-4 py-1 rounded-full">Consigliato</div>
+            <h3 class="text-xl font-bold text-gray-900">Pro</h3>
+            <p class="text-gray-500 mt-2">Per l'imprenditore attento</p>
+            <div class="mt-6 mb-8">
+              <span class="text-4xl font-bold text-gray-900">&euro;49</span>
+              <span class="text-gray-500">/mese</span>
+            </div>
+            <ul class="space-y-3 text-sm text-gray-600 mb-8">
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> 1 azienda</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Tutti i KPI obbligatori + settoriali</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Soglie CNDCEC per codice ATECO</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Alert automatici email</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Report PDF esportabile</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Storico dati illimitato</li>
+            </ul>
+            <NuxtLink to="/register" class="block text-center w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
+              Prova Gratis 14 Giorni
+            </NuxtLink>
+          </div>
+          <!-- Studio -->
+          <div class="border border-gray-200 rounded-2xl p-8 hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-gray-900">Studio</h3>
+            <p class="text-gray-500 mt-2">Per commercialisti e consulenti</p>
+            <div class="mt-6 mb-8">
+              <span class="text-4xl font-bold text-gray-900">&euro;149</span>
+              <span class="text-gray-500">/mese</span>
+            </div>
+            <ul class="space-y-3 text-sm text-gray-600 mb-8">
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Fino a 20 aziende</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Tutto il piano Pro incluso</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Gestione multi-azienda</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Report con branding personalizzato</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Supporto prioritario</li>
+              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Dashboard comparativa</li>
+            </ul>
+            <NuxtLink to="/register" class="block text-center w-full border-2 border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
+              Prova Gratis 14 Giorni
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Footer -->
     <footer class="bg-gray-900 text-gray-400 py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -504,7 +577,12 @@
 
         <!-- Copyright e Dati Legali -->
         <div class="border-t border-gray-800 pt-8 text-center">
-          <p class="text-sm mb-4">&copy; 2026 Adeguati Assetti. Tutti i diritti riservati.</p>
+          <div class="flex justify-center gap-4 mb-4 text-sm">
+            <NuxtLink to="/termini-servizio" class="text-gray-400 hover:text-white">Termini di Servizio</NuxtLink>
+            <span class="text-gray-600">|</span>
+            <NuxtLink to="/privacy-policy" class="text-gray-400 hover:text-white">Privacy Policy</NuxtLink>
+          </div>
+          <p class="text-sm mb-4">&copy; 2026 Adeguati Assetti Impresa. Tutti i diritti riservati.</p>
           <div class="text-xs text-gray-500 space-y-1">
             <p>Smiledoc S.r.l. - Via Gianni Metello 37, 51100 Pistoia (PT)</p>
             <p>P.IVA: IT15131801001</p>

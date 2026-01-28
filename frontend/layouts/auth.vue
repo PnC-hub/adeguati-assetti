@@ -29,6 +29,11 @@
 
         <!-- Copyright e Dati Legali -->
         <div class="border-t border-gray-800 pt-8 text-center">
+          <div class="flex justify-center gap-4 mb-4 text-sm">
+            <NuxtLink to="/termini-servizio" class="text-gray-400 hover:text-white">Termini di Servizio</NuxtLink>
+            <span class="text-gray-600">|</span>
+            <NuxtLink to="/privacy-policy" class="text-gray-400 hover:text-white">Privacy Policy</NuxtLink>
+          </div>
           <p class="text-sm mb-4">&copy; 2026 Adeguati Assetti Impresa. Tutti i diritti riservati.</p>
           <div class="text-xs text-gray-500 space-y-1">
             <p>Smiledoc S.r.l. - Via Gianni Metello 37, 51100 Pistoia (PT)</p>

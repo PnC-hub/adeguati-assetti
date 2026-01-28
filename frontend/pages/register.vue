@@ -80,7 +80,7 @@
       <label class="flex items-start gap-2">
         <input type="checkbox" v-model="form.terms" required class="rounded text-blue-600 mt-1" />
         <span class="text-sm text-gray-600">
-          Accetto i <a href="#" class="text-blue-600">Termini di Servizio</a> e la <a href="#" class="text-blue-600">Privacy Policy</a>
+          Accetto i <NuxtLink to="/termini-servizio" target="_blank" class="text-blue-600 hover:underline">Termini di Servizio</NuxtLink> e la <NuxtLink to="/privacy-policy" target="_blank" class="text-blue-600 hover:underline">Privacy Policy</NuxtLink>
         </span>
       </label>
 
