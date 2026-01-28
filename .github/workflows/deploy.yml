@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -16,6 +19,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -40,6 +44,7 @@ jobs:
           ssh-keyscan -H 93.186.255.213 >> ~/.ssh/known_hosts
 
       - name: Deploy to server
+        working-directory: frontend
         run: |
           rsync -avz --delete .output/public/ geniusfast@93.186.255.213:/tmp/adeguati-assetti-deploy/
-          ssh geniusfast@93.186.255.213 "sudo rm -rf /var/www/vhosts/geniusmile.com/adeguati-assetti/* && sudo mv /tmp/adeguati-assetti-deploy/* /var/www/vhosts/geniusmile.com/adeguati-assetti/ && sudo chown -R geniusmile:psacln /var/www/vhosts/geniusmile.com/adeguati-assetti/"
+          ssh geniusfast@93.186.255.213 "sudo rm -rf /var/www/vhosts/geniusmile.com/adeguati-assetti/* && sudo mv /tmp/adeguati-assetti-deploy/* /var/www/vhosts/geniusmile.com/adeguati-assetti/ && sudo chown -R www-data:www-data /var/www/vhosts/geniusmile.com/adeguati-assetti/"
