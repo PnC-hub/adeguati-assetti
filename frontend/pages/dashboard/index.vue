@@ -20,6 +20,7 @@
           class="w-full md:w-auto min-w-[300px] px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white shadow-sm"
           @change="onAziendaChange"
         >
+          <option :value="null">Tutte le aziende</option>
           <option v-for="az in aziende" :key="az.id" :value="az.id">
             {{ az.nome }} <span v-if="az.settore">- {{ az.settore }}</span>
           </option>
@@ -27,18 +28,18 @@
       </div>
 
       <div class="flex justify-end gap-3">
-        <select v-model="selectedMese" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" @change="loadDashboard">
+        <select v-model="selectedMese" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" @change="onPeriodoChange">
           <option v-for="m in mesi" :key="m.value" :value="m.value">{{ m.label }}</option>
         </select>
-        <select v-model="selectedAnno" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-24" @change="loadDashboard">
+        <select v-model="selectedAnno" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-24" @change="onPeriodoChange">
           <option v-for="a in anni" :key="a" :value="a">{{ a }}</option>
         </select>
-        <button @click="ricalcola" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2" :disabled="loading">
+        <button v-if="selectedAziendaId !== null" @click="ricalcola" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2" :disabled="loading">
           <Icon v-if="loading" name="heroicons:arrow-path" class="w-4 h-4 animate-spin" />
           <Icon v-else name="heroicons:arrow-path" class="w-4 h-4" />
           {{ loading ? 'Calcolo...' : 'Ricalcola' }}
         </button>
-        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
+        <button v-if="selectedAziendaId !== null" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
           <Icon name="heroicons:document-arrow-down" class="w-4 h-4" />
           Report PDF
         </button>
@@ -46,7 +47,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading && !dashboard.score" class="flex justify-center items-center py-20">
+    <div v-if="loading" class="flex justify-center items-center py-20">
       <Icon name="heroicons:arrow-path" class="w-12 h-12 text-blue-600 animate-spin" />
     </div>
 
@@ -59,11 +60,67 @@
           <div class="text-sm">{{ error }}</div>
         </div>
       </div>
-      <button @click="loadDashboard" class="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+      <button @click="loadData" class="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
         Riprova
       </button>
     </div>
 
+    <!-- Vista Panoramica (Tutte le aziende) -->
+    <template v-else-if="selectedAziendaId === null && aziende.length > 1">
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Icon name="heroicons:building-office-2" class="w-5 h-5 text-blue-600" />
+            Panoramica Clienti - {{ periodoLabel }}
+          </h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-800 text-white">
+              <tr>
+                <th class="px-6 py-4 text-left font-semibold">Azienda</th>
+                <th class="px-6 py-4 text-center font-semibold">Score</th>
+                <th class="px-6 py-4 text-center font-semibold">Stato</th>
+                <th class="px-6 py-4 text-center font-semibold">Alert</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr
+                v-for="az in aziendeRiepilogo"
+                :key="az.id"
+                class="hover:bg-blue-50 cursor-pointer transition-colors"
+                @click="selectAzienda(az.id)"
+              >
+                <td class="px-6 py-4">
+                  <div class="font-medium text-gray-900">{{ az.nome }}</div>
+                  <div v-if="az.settore" class="text-sm text-gray-500">{{ az.settore }}</div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <span class="text-2xl font-bold" :class="getScoreColor(az.score)">{{ az.score }}</span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <span
+                    class="px-3 py-1 rounded-full text-sm font-semibold"
+                    :class="getStatoBadgeClass(az.stato)"
+                  >
+                    {{ getStatoLabel(az.stato) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <span v-if="az.alert_count > 0" class="inline-flex items-center gap-1 text-red-600 font-semibold">
+                    <Icon name="heroicons:exclamation-triangle" class="w-4 h-4" />
+                    {{ az.alert_count }}
+                  </span>
+                  <span v-else class="text-gray-400">-</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+
+    <!-- Vista Singola Azienda -->
     <template v-else>
       <!-- Score Card -->
       <div class="bg-white rounded-xl shadow p-6 mb-6">
@@ -180,7 +237,15 @@ interface Azienda {
   nome: string
   settore?: string
 }
+
+interface AziendaRiepilogo extends Azienda {
+  score: number
+  stato: string
+  alert_count: number
+}
+
 const aziende = ref<Azienda[]>([])
+const aziendeRiepilogo = ref<AziendaRiepilogo[]>([])
 const selectedAziendaId = ref<number | null>(null)
 
 const anni = computed(() => {
@@ -252,6 +317,15 @@ const getAuthHeaders = () => {
 }
 
 const onAziendaChange = () => {
+  loadData()
+}
+
+const onPeriodoChange = () => {
+  loadData()
+}
+
+const selectAzienda = (id: number) => {
+  selectedAziendaId.value = id
   loadDashboard()
 }
 
@@ -263,10 +337,11 @@ const loadAziende = async () => {
     )
     if (response.success && response.data.aziende) {
       aziende.value = response.data.aziende
-      // Set default azienda if not already set
-      if (!selectedAziendaId.value && aziende.value.length > 0) {
-        const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-        selectedAziendaId.value = user.azienda_id || aziende.value[0].id
+      // Default to "Tutte" if more than one azienda
+      if (aziende.value.length > 1) {
+        selectedAziendaId.value = null
+      } else if (aziende.value.length === 1) {
+        selectedAziendaId.value = aziende.value[0].id
       }
     }
   } catch (e) {
@@ -274,17 +349,56 @@ const loadAziende = async () => {
   }
 }
 
+const loadRiepilogo = async () => {
+  loading.value = true
+  error.value = null
+  aziendeRiepilogo.value = []
+
+  try {
+    // Load dashboard for each azienda
+    const promises = aziende.value.map(async (az) => {
+      try {
+        const response = await $fetch<{ success: boolean; data: DashboardData }>(
+          `${config.public.apiBase}/dashboard?azienda_id=${az.id}&anno=${selectedAnno.value}&mese=${selectedMese.value}`,
+          { headers: getAuthHeaders() }
+        )
+        if (response.success && response.data) {
+          return {
+            ...az,
+            score: response.data.score,
+            stato: response.data.stato_generale,
+            alert_count: response.data.alert_count
+          }
+        }
+      } catch (e) {
+        console.error(`Errore caricamento azienda ${az.id}:`, e)
+      }
+      return {
+        ...az,
+        score: 0,
+        stato: 'nd',
+        alert_count: 0
+      }
+    })
+
+    aziendeRiepilogo.value = await Promise.all(promises)
+  } catch (e) {
+    console.error('Errore caricamento riepilogo:', e)
+    error.value = 'Errore nel caricamento dei dati'
+  } finally {
+    loading.value = false
+  }
+}
+
 const loadDashboard = async () => {
+  if (selectedAziendaId.value === null) return
+
   loading.value = true
   error.value = null
 
-  // Get azienda_id from selection or user data
-  const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-  const aziendaId = selectedAziendaId.value || user.azienda_id || 5
-
   try {
     const response = await $fetch<{ success: boolean; data: DashboardData }>(
-      `${config.public.apiBase}/dashboard?azienda_id=${aziendaId}&anno=${selectedAnno.value}&mese=${selectedMese.value}`,
+      `${config.public.apiBase}/dashboard?azienda_id=${selectedAziendaId.value}&anno=${selectedAnno.value}&mese=${selectedMese.value}`,
       { headers: getAuthHeaders() }
     )
 
@@ -293,46 +407,31 @@ const loadDashboard = async () => {
     }
   } catch (e: unknown) {
     console.error('Errore caricamento dashboard:', e)
-
-    // Demo data for testing
-    Object.assign(dashboard, {
-      score: 82,
-      stato_generale: 'buono',
-      alert_count: 2,
-      kpi_obbligatori: [
-        { codice: 'PN', nome: 'Patrimonio Netto', valore: 125000, stato: 'verde', unita_misura: '€', delta_precedente: 5000 },
-        { codice: 'DSCR', nome: 'DSCR', valore: 1.45, stato: 'verde', unita_misura: 'ratio', delta_precedente: 0.12 },
-        { codice: 'CURRENT_RATIO', nome: 'Current Ratio', valore: 1.82, stato: 'verde', unita_misura: 'ratio', delta_precedente: -0.08 },
-        { codice: 'OF_RICAVI', nome: 'Oneri Fin./Ricavi', valore: 0.018, stato: 'verde', unita_misura: '%', delta_precedente: 0 },
-      ],
-      kpi_settoriali: [
-        { codice: 'MARGINE_LORDO', nome: 'Margine Lordo', valore: 0.68, stato: 'verde', unita_misura: '%', delta_precedente: 0.02 },
-        { codice: 'DSO', nome: 'Giorni Incasso', valore: 72, stato: 'rosso', unita_misura: 'giorni', delta_precedente: 8 },
-      ],
-      alert: [
-        { id: 1, livello: 'critical', messaggio: 'DSO critico: 72 giorni (soglia: 30)', azione_suggerita: 'Rivedere politiche di pagamento' },
-        { id: 2, livello: 'warning', messaggio: 'Margine sotto target', azione_suggerita: 'Analizzare costi variabili' },
-      ],
-    })
-    error.value = null
+    error.value = 'Errore nel caricamento della dashboard'
   } finally {
     loading.value = false
   }
 }
 
+const loadData = () => {
+  if (selectedAziendaId.value === null && aziende.value.length > 1) {
+    loadRiepilogo()
+  } else {
+    loadDashboard()
+  }
+}
+
 const ricalcola = async () => {
+  if (selectedAziendaId.value === null) return
+
   loading.value = true
   error.value = null
-
-  // Get azienda_id from selection or user data
-  const user = JSON.parse(localStorage.getItem('aa_user') || '{}')
-  const aziendaId = selectedAziendaId.value || user.azienda_id || 5
 
   try {
     await $fetch(`${config.public.apiBase}/calcola`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: { azienda_id: aziendaId, anno: selectedAnno.value, mese: selectedMese.value }
+      body: { azienda_id: selectedAziendaId.value, anno: selectedAnno.value, mese: selectedMese.value }
     })
     await loadDashboard()
   } catch (e: unknown) {
@@ -344,8 +443,8 @@ const ricalcola = async () => {
 }
 
 const scoreColor = computed(() => {
-  if (dashboard.score >= 80) return 'text-green-500'
-  if (dashboard.score >= 60) return 'text-yellow-500'
+  if (dashboard.score >= 70) return 'text-green-500'
+  if (dashboard.score >= 50) return 'text-yellow-500'
   return 'text-red-500'
 })
 
@@ -362,12 +461,32 @@ const statoLabel = computed(() => {
   return 'N/D'
 })
 
+const getScoreColor = (score: number) => {
+  if (score >= 70) return 'text-green-500'
+  if (score >= 50) return 'text-yellow-500'
+  return 'text-red-500'
+}
+
+const getStatoBadgeClass = (stato: string) => {
+  if (stato === 'buono') return 'bg-green-100 text-green-800'
+  if (stato === 'attenzione') return 'bg-yellow-100 text-yellow-800'
+  if (stato === 'critico') return 'bg-red-100 text-red-800'
+  return 'bg-gray-100 text-gray-800'
+}
+
+const getStatoLabel = (stato: string) => {
+  if (stato === 'buono') return 'BUONO'
+  if (stato === 'attenzione') return 'ATTENZIONE'
+  if (stato === 'critico') return 'CRITICO'
+  return 'N/D'
+}
+
 const goToDetail = (codice: string) => {
   router.push(`/dashboard/kpi/${codice}`)
 }
 
 onMounted(async () => {
   await loadAziende()
-  loadDashboard()
+  loadData()
 })
 </script>
