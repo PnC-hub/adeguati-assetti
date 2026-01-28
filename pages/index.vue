@@ -511,18 +511,26 @@
             </ul>
           </div>
           <div>
-            <h4 class="font-semibold text-white mb-4">Contatti</h4>
+            <h4 class="font-semibold text-white mb-4">Legale</h4>
             <ul class="space-y-2 text-sm">
-              <li>info@adeguatiassetti.it</li>
-              <li>+39 06 1234567</li>
+              <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+              <li><a href="#" class="hover:text-white">Termini di Servizio</a></li>
+              <li><a href="#" class="hover:text-white">Cookie Policy</a></li>
             </ul>
           </div>
         </div>
-        <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm">
-          <p>&copy; 2026 Adeguati Assetti. Tutti i diritti riservati.</p>
-          <div class="flex gap-6 mt-4 md:mt-0">
-            <a href="#" class="hover:text-white">Privacy Policy</a>
-            <a href="#" class="hover:text-white">Termini di Servizio</a>
+        <div class="border-t border-gray-800 pt-8 text-sm">
+          <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+            <p>&copy; 2026 Adeguati Assetti. Tutti i diritti riservati.</p>
+            <div class="flex gap-6 mt-4 md:mt-0">
+              <a href="#" class="hover:text-white">Privacy Policy</a>
+              <a href="#" class="hover:text-white">Termini di Servizio</a>
+            </div>
+          </div>
+          <div class="text-center text-xs text-gray-500 pt-4 border-t border-gray-800">
+            <p>SmileDoc S.r.l. - Via Monte Circeo 12, 00015 Monterotondo (RM)</p>
+            <p>P.IVA e C.F.: 15697751006 - REA: RM-1609244 - Capitale Sociale: 10.000,00 € i.v.</p>
+            <p>PEC: smiledoc@pec.it</p>
           </div>
         </div>
       </div>
