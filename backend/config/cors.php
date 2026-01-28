@@ -14,6 +14,7 @@ return [
 
     'allowed_origins' => [
         'https://adeguatiassettiimpresa.it',
+        'https://www.adeguatiassettiimpresa.it',
         'http://localhost:3000',
         'http://localhost:3001',
     ],
