@@ -233,7 +233,7 @@ const loadDashboard = async () => {
 
   try {
     const response = await $fetch<{ success: boolean; data: DashboardData }>(
-      `${config.public.apiBase}/adeguati-assetti/api/dashboard?anno=${selectedAnno.value}&mese=${selectedMese.value}`,
+      `${config.public.apiBase}/adeguati-assetti/dashboard?anno=${selectedAnno.value}&mese=${selectedMese.value}`,
       { headers: getAuthHeaders() }
     )
 
@@ -278,7 +278,7 @@ const ricalcola = async () => {
   const aziendaId = user.azienda_id || 1
 
   try {
-    await $fetch(`${config.public.apiBase}/adeguati-assetti/api/calcola`, {
+    await $fetch(`${config.public.apiBase}/adeguati-assetti/calcola`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: { azienda_id: aziendaId, anno: selectedAnno.value, mese: selectedMese.value }
