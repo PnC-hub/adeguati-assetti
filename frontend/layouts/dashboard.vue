@@ -9,7 +9,7 @@
               <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Icon name="heroicons:chart-bar" class="w-5 h-5 text-white" />
               </div>
-              <span class="font-bold text-gray-900">Adeguati Assetti</span>
+              <span class="font-bold text-gray-900">Adeguati Assetti Impresa</span>
             </NuxtLink>
           </div>
 

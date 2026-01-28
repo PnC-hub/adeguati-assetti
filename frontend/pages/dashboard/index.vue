@@ -8,7 +8,11 @@
         </div>
         <div class="flex-1">
           <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
-          <p class="text-gray-500">Cruscotto salute aziendale - {{ periodoLabel }}</p>
+          <p class="text-gray-500">
+            <span v-if="currentAziendaNome" class="font-medium text-gray-700">{{ currentAziendaNome }}</span>
+            <span v-if="currentAziendaNome"> - </span>
+            {{ periodoLabel }}
+          </p>
         </div>
       </div>
 
@@ -34,14 +38,14 @@
         <select v-model="selectedAnno" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-24" @change="onPeriodoChange">
           <option v-for="a in anni" :key="a" :value="a">{{ a }}</option>
         </select>
-        <button v-if="selectedAziendaId !== null" @click="ricalcola" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2" :disabled="loading">
-          <Icon v-if="loading" name="heroicons:arrow-path" class="w-4 h-4 animate-spin" />
-          <Icon v-else name="heroicons:arrow-path" class="w-4 h-4" />
-          {{ loading ? 'Calcolo...' : 'Ricalcola' }}
-        </button>
-        <button v-if="selectedAziendaId !== null" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2">
-          <Icon name="heroicons:document-arrow-down" class="w-4 h-4" />
-          Report PDF
+        <NuxtLink v-if="selectedAziendaId !== null" :to="`/dashboard/inserimento?azienda=${selectedAziendaId}&anno=${selectedAnno}&mese=${selectedMese}`" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <Icon name="heroicons:arrow-path" class="w-4 h-4" />
+          Ricalcola
+        </NuxtLink>
+        <button v-if="selectedAziendaId !== null" @click="exportPdf" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2" :disabled="exportingPdf">
+          <Icon v-if="exportingPdf" name="heroicons:arrow-path" class="w-4 h-4 animate-spin" />
+          <Icon v-else name="heroicons:document-arrow-down" class="w-4 h-4" />
+          {{ exportingPdf ? 'Generazione...' : 'Report PDF' }}
         </button>
       </div>
     </div>
@@ -230,6 +234,7 @@ const selectedAnno = ref(new Date().getFullYear())
 const selectedMese = ref(new Date().getMonth() + 1)
 const loading = ref(false)
 const error = ref<string | null>(null)
+const exportingPdf = ref(false)
 
 // Aziende management
 interface Azienda {
@@ -271,6 +276,12 @@ const mesi = [
 const periodoLabel = computed(() => {
   const m = mesi.find(x => x.value === selectedMese.value)
   return `${m?.label} ${selectedAnno.value}`
+})
+
+const currentAziendaNome = computed(() => {
+  if (selectedAziendaId.value === null) return null
+  const az = aziende.value.find(a => a.id === selectedAziendaId.value)
+  return az?.nome || null
 })
 
 interface KpiData {
@@ -421,25 +432,68 @@ const loadData = () => {
   }
 }
 
-const ricalcola = async () => {
+const exportPdf = async () => {
   if (selectedAziendaId.value === null) return
 
-  loading.value = true
-  error.value = null
+  exportingPdf.value = true
 
   try {
-    await $fetch(`${config.public.apiBase}/calcola`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: { azienda_id: selectedAziendaId.value, anno: selectedAnno.value, mese: selectedMese.value }
-    })
-    await loadDashboard()
-  } catch (e: unknown) {
-    console.error('Errore ricalcolo:', e)
-    error.value = e instanceof Error ? e.message : 'Errore nel ricalcolo'
+    const response = await $fetch<{ success: boolean; data: any }>(
+      `${config.public.apiBase}/export?azienda_id=${selectedAziendaId.value}&anno=${selectedAnno.value}`,
+      { headers: getAuthHeaders() }
+    )
+
+    if (response.success) {
+      // Create PDF content
+      const aziendaNome = currentAziendaNome.value || 'Azienda'
+      const periodo = periodoLabel.value
+
+      // Generate simple text report and download
+      const reportContent = generateReportText(aziendaNome, periodo, response.data)
+      downloadTextFile(reportContent, `Report_${aziendaNome.replace(/\s+/g, '_')}_${selectedAnno.value}_${selectedMese.value}.txt`)
+    }
+  } catch (e) {
+    console.error('Errore export:', e)
+    alert('Errore nella generazione del report')
   } finally {
-    loading.value = false
+    exportingPdf.value = false
   }
+}
+
+const generateReportText = (azienda: string, periodo: string, data: any) => {
+  let report = `REPORT ADEGUATI ASSETTI\n`
+  report += `${'='.repeat(50)}\n\n`
+  report += `Azienda: ${azienda}\n`
+  report += `Periodo: ${periodo}\n`
+  report += `Data generazione: ${new Date().toLocaleDateString('it-IT')}\n\n`
+  report += `STATO GENERALE\n`
+  report += `${'-'.repeat(30)}\n`
+  report += `Score: ${dashboard.score}\n`
+  report += `Stato: ${statoLabel.value}\n`
+  report += `Alert attivi: ${dashboard.alert_count}\n\n`
+  report += `INDICATORI OBBLIGATORI\n`
+  report += `${'-'.repeat(30)}\n`
+  dashboard.kpi_obbligatori.forEach(kpi => {
+    report += `${kpi.nome}: ${kpi.valore !== null ? kpi.valore : 'N/D'} (${kpi.stato})\n`
+  })
+  report += `\nKPI AZIENDALI\n`
+  report += `${'-'.repeat(30)}\n`
+  dashboard.kpi_settoriali.forEach(kpi => {
+    report += `${kpi.nome}: ${kpi.valore !== null ? kpi.valore : 'N/D'} (${kpi.stato})\n`
+  })
+  return report
+}
+
+const downloadTextFile = (content: string, filename: string) => {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 const scoreColor = computed(() => {

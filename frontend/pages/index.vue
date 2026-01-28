@@ -13,7 +13,7 @@
             <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
               <Icon name="heroicons:shield-check" class="w-6 h-6 text-white" />
             </div>
-            <span class="font-bold text-xl">Adeguati Assetti</span>
+            <span class="font-bold text-xl">Adeguati Assetti Impresa</span>
           </div>
           <div class="flex items-center gap-4">
             <NuxtLink to="/login" class="text-white/80 hover:text-white">Accedi</NuxtLink>
@@ -498,7 +498,7 @@
             per ogni decisione aziendale, adempimento normativo o valutazione degli assetti organizzativi, amministrativi e contabili ai sensi dell'Art. 2086 del Codice Civile.
           </p>
           <p class="text-sm leading-relaxed mt-3">
-            SmileDoc S.r.l. declina ogni responsabilita per danni diretti o indiretti derivanti dall'utilizzo delle informazioni fornite dal servizio.
+            Smiledoc S.r.l. declina ogni responsabilita per danni diretti o indiretti derivanti dall'utilizzo delle informazioni fornite dal servizio.
           </p>
         </div>
 
@@ -506,9 +506,8 @@
         <div class="border-t border-gray-800 pt-8 text-center">
           <p class="text-sm mb-4">&copy; 2026 Adeguati Assetti. Tutti i diritti riservati.</p>
           <div class="text-xs text-gray-500 space-y-1">
-            <p>SmileDoc S.r.l. - Via Monte Circeo 12, 00015 Monterotondo (RM)</p>
-            <p>P.IVA e C.F.: 15697751006 - REA: RM-1609244 - Capitale Sociale: 10.000,00 € i.v.</p>
-            <p>PEC: smiledoc@pec.it</p>
+            <p>Smiledoc S.r.l. - Via Gianni Metello 37, 51100 Pistoia (PT)</p>
+            <p>P.IVA: IT15131801001</p>
           </div>
         </div>
       </div>
