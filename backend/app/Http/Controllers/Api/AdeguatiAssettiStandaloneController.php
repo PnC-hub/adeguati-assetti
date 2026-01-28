@@ -87,6 +87,41 @@ class AdeguatiAssettiStandaloneController extends Controller
     }
 
     /**
+     * Get dati economici per anno/mese
+     */
+    public function getDatiEconomici(Request $request, int $anno, int $mese): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        // Get user's azienda
+        $azienda = DB::table('aa_aziende')
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$azienda) {
+            return response()->json(['success' => false, 'message' => 'Azienda non trovata'], 404);
+        }
+
+        $dati = DB::table('aa_dati_economici')
+            ->where('azienda_id', $azienda->id)
+            ->where('anno', $anno)
+            ->where('mese', $mese)
+            ->first();
+
+        if (!$dati) {
+            return response()->json(['success' => false, 'message' => 'Dati non trovati'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $dati
+        ]);
+    }
+
+    /**
      * Salva dati economici
      */
     public function salvaDatiEconomici(Request $request): JsonResponse

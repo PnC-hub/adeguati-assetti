@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\AdeguatiAssettiStandaloneController;
 |--------------------------------------------------------------------------
 */
 
-// Authentication routes
+// Authentication routes - will be accessible at /api/auth/*
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AdeguatiAssettiAuthController::class, 'register']);
     Route::post('/login', [AdeguatiAssettiAuthController::class, 'login']);
@@ -19,11 +19,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [AdeguatiAssettiAuthController::class, 'forgotPassword']);
 });
 
-// Protected API routes
-Route::prefix('api')->group(function () {
-    Route::get('/dashboard', [AdeguatiAssettiStandaloneController::class, 'dashboard']);
-    Route::post('/dati-economici', [AdeguatiAssettiStandaloneController::class, 'salvaDatiEconomici']);
-    Route::post('/calcola', [AdeguatiAssettiStandaloneController::class, 'calcolaKpi']);
-    Route::get('/alert', [AdeguatiAssettiStandaloneController::class, 'listaAlert']);
-    Route::get('/export', [AdeguatiAssettiStandaloneController::class, 'exportDati']);
-});
+// API routes - will be accessible at /api/*
+Route::get('/dashboard', [AdeguatiAssettiStandaloneController::class, 'dashboard']);
+Route::get('/dati-economici/{anno}/{mese}', [AdeguatiAssettiStandaloneController::class, 'getDatiEconomici']);
+Route::post('/dati-economici', [AdeguatiAssettiStandaloneController::class, 'salvaDatiEconomici']);
+Route::post('/calcola', [AdeguatiAssettiStandaloneController::class, 'calcolaKpi']);
+Route::get('/alert', [AdeguatiAssettiStandaloneController::class, 'listaAlert']);
+Route::get('/export', [AdeguatiAssettiStandaloneController::class, 'exportDati']);
