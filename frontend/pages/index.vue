@@ -2,7 +2,7 @@
   <div class="min-h-screen">
     <!-- Urgency Banner -->
     <div class="bg-red-600 text-white py-2 text-center text-sm font-medium">
-      Art. 2086 C.C.: Gli amministratori sono PERSONALMENTE responsabili. Verifica subito la tua situazione.
+      Art. 2086 C.C.: I Tribunali italiani stanno gia disponendo ispezioni giudiziarie per mancanza di assetti adeguati. Verifica subito.
     </div>
 
     <!-- Hero Section -->
@@ -92,7 +92,7 @@
     <!-- Problem Section -->
     <section class="py-16 bg-gray-900 text-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-3 gap-8">
+        <div class="grid md:grid-cols-4 gap-8">
           <div class="text-center">
             <div class="text-5xl font-bold text-red-400 mb-2">73%</div>
             <p class="text-gray-400">delle PMI italiane non monitora gli indicatori di crisi</p>
@@ -103,7 +103,11 @@
           </div>
           <div class="text-center">
             <div class="text-5xl font-bold text-red-400 mb-2">100%</div>
-            <p class="text-gray-400">responsabilità personale dell'amministratore</p>
+            <p class="text-gray-400">responsabilita personale dell'amministratore</p>
+          </div>
+          <div class="text-center">
+            <div class="text-5xl font-bold text-yellow-400 mb-2">2024</div>
+            <p class="text-gray-400">primi decreti di ispezione giudiziaria ex Art. 2409 c.c.</p>
           </div>
         </div>
       </div>
@@ -121,6 +125,96 @@
             <Icon name="heroicons:star-solid" class="w-5 h-5 text-yellow-400" />
             <Icon name="heroicons:star-solid" class="w-5 h-5 text-yellow-400" />
             <span class="ml-2 text-gray-900 font-medium">4.9/5</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Giurisprudenza / Perche e obbligatorio -->
+    <section class="py-20 bg-red-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <span class="inline-block bg-red-100 text-red-700 text-sm font-bold px-4 py-1 rounded-full mb-4">ATTENZIONE: OBBLIGO DI LEGGE</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900">I Tribunali stanno gia intervenendo</h2>
+          <p class="text-gray-600 mt-4 text-lg max-w-3xl mx-auto">
+            L'Art. 2086 del Codice Civile obbliga ogni imprenditore a dotarsi di assetti organizzativi, amministrativi e contabili adeguati.
+            La giurisprudenza italiana sta gia sanzionando chi non si adegua.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <!-- Card Tribunale -->
+          <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+            <div class="flex items-center gap-2 mb-3">
+              <Icon name="heroicons:scale" class="w-6 h-6 text-red-600" />
+              <h3 class="font-bold text-gray-900">Tribunale di Catanzaro - Feb. 2024</h3>
+            </div>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              Il Tribunale ha disposto l'ispezione giudiziaria di una societa per assenza di adeguati assetti organizzativi, contabili e amministrativi ex Art. 2086 c.c.,
+              qualificandola come <strong>grave irregolarita</strong> anche in assenza di crisi aziendale.
+            </p>
+            <p class="text-red-600 font-semibold text-sm mt-3">Decreto n. 6/2024 - Art. 2409 c.c.</p>
+          </div>
+
+          <!-- Card Cagliari -->
+          <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+            <div class="flex items-center gap-2 mb-3">
+              <Icon name="heroicons:scale" class="w-6 h-6 text-red-600" />
+              <h3 class="font-bold text-gray-900">Tribunale di Cagliari - Mar. 2022</h3>
+            </div>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              Gli adeguati assetti sono funzionali ad evitare che l'impresa scivoli inconsapevolmente verso una situazione di crisi,
+              consentendo all'organo amministrativo di <strong>percepire tempestivamente i segnali</strong> che preannunciano la crisi.
+            </p>
+            <p class="text-red-600 font-semibold text-sm mt-3">Decreto SSI - 2 Marzo 2022</p>
+          </div>
+        </div>
+
+        <!-- Checklist del Tribunale -->
+        <div class="mt-12 bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+          <h3 class="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <Icon name="heroicons:clipboard-document-check" class="w-6 h-6 text-red-600" />
+            Cosa verificano i Tribunali (Art. 2086 c.c.)
+          </h3>
+          <p class="text-gray-500 mb-6 text-sm">Elementi ispezionati nelle verifiche giudiziarie sugli assetti societari</p>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Organigramma aggiornato</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Sistema monitoraggio rischi aziendali</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Budget e strumenti previsionali</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Strumenti di reporting periodico</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Contabilita con analisi di bilancio</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Gestione e monitoraggio crediti</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Mansionario aziendale</span>
+            </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+              <span class="text-sm text-gray-700">Piano industriale documentato</span>
+            </div>
+          </div>
+          <div class="mt-6 text-center">
+            <NuxtLink to="/register" class="inline-block bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+              Verifica la Conformita della Tua Azienda
+            </NuxtLink>
           </div>
         </div>
       </div>

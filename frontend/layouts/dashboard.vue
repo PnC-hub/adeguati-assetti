@@ -20,6 +20,9 @@
             <NuxtLink to="/dashboard/inserimento" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
               Inserimento Dati
             </NuxtLink>
+            <NuxtLink to="/dashboard/checklist" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+              Checklist 2086
+            </NuxtLink>
             <NuxtLink to="/dashboard/account" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
               Account
             </NuxtLink>
