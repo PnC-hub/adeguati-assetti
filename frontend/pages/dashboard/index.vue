@@ -42,12 +42,27 @@
           <Icon name="heroicons:arrow-path" class="w-4 h-4" />
           Ricalcola
         </NuxtLink>
-        <button v-if="selectedAziendaId !== null" @click="exportPdf" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2" :disabled="exportingPdf">
+        <button v-if="selectedAziendaId !== null && hasFeature('export_pdf')" @click="exportPdf" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center gap-2" :disabled="exportingPdf">
           <Icon v-if="exportingPdf" name="heroicons:arrow-path" class="w-4 h-4 animate-spin" />
           <Icon v-else name="heroicons:document-arrow-down" class="w-4 h-4" />
           {{ exportingPdf ? 'Generazione...' : 'Report PDF' }}
         </button>
+        <NuxtLink v-if="selectedAziendaId !== null && !hasFeature('export_pdf')" to="/dashboard/account" class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg flex items-center gap-2">
+          <Icon name="heroicons:lock-closed" class="w-4 h-4" />
+          Report PDF (Pro)
+        </NuxtLink>
       </div>
+    </div>
+
+    <!-- Upgrade Banner per piano free -->
+    <div v-if="userPlanCode === 'free'" class="bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-xl p-4 mb-6 flex items-center justify-between">
+      <div>
+        <p class="font-semibold">Stai usando il piano Free - funzionalita limitate</p>
+        <p class="text-purple-100 text-sm">Sblocca KPI settoriali, alert automatici e export PDF</p>
+      </div>
+      <NuxtLink to="/dashboard/account" class="bg-white text-purple-700 px-5 py-2 rounded-lg font-semibold hover:bg-purple-50 transition text-sm">
+        Upgrade
+      </NuxtLink>
     </div>
 
     <!-- Loading -->
@@ -169,11 +184,22 @@
       </div>
 
       <!-- KPI Settoriali -->
-      <div class="bg-white rounded-xl shadow p-6 mb-6">
+      <div class="bg-white rounded-xl shadow p-6 mb-6 relative">
         <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Icon name="heroicons:chart-pie" class="w-5 h-5 text-blue-600" />
           KPI Aziendali
         </h2>
+        <!-- Upgrade overlay per piano free -->
+        <div v-if="!hasFeature('kpi_settoriali')" class="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
+          <div class="text-center p-6">
+            <Icon name="heroicons:lock-closed" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <h3 class="text-lg font-bold text-gray-700">KPI Settoriali disponibili dal piano Pro</h3>
+            <p class="text-gray-500 mt-1 mb-4">Sblocca analisi settoriale, alert e report PDF</p>
+            <NuxtLink to="/dashboard/account" class="inline-block bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700 transition">
+              Upgrade a Pro - &euro;49/mese
+            </NuxtLink>
+          </div>
+        </div>
         <div v-if="dashboard.kpi_settoriali.length === 0" class="text-gray-500 text-center py-8">
           <Icon name="heroicons:chart-bar" class="w-8 h-8 mx-auto mb-2" />
           <p>I KPI settoriali verranno calcolati automaticamente dai dati inseriti.</p>
@@ -235,6 +261,27 @@ const selectedMese = ref(new Date().getMonth() + 1)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const exportingPdf = ref(false)
+
+// Piano utente per feature gating
+const userPlanCode = ref('free')
+const userFeatures = ref<Record<string, boolean>>({})
+
+const hasFeature = (feature: string): boolean => {
+  return userFeatures.value[feature] === true
+}
+
+const loadUserPlan = () => {
+  try {
+    const stored = localStorage.getItem('aa_piano')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      userPlanCode.value = parsed.codice || 'free'
+      userFeatures.value = parsed.features || {}
+    }
+  } catch (e) {
+    // default free
+  }
+}
 
 // Aziende management
 interface Azienda {
@@ -415,6 +462,15 @@ const loadDashboard = async () => {
 
     if (response.success && response.data) {
       Object.assign(dashboard, response.data)
+      // Aggiorna piano dal backend
+      if (response.data.piano) {
+        userPlanCode.value = response.data.piano.codice || 'free'
+        userFeatures.value = response.data.piano.features || {}
+        localStorage.setItem('aa_piano', JSON.stringify({
+          codice: response.data.piano.codice,
+          features: response.data.piano.features,
+        }))
+      }
     }
   } catch (e: unknown) {
     console.error('Errore caricamento dashboard:', e)
@@ -540,6 +596,7 @@ const goToDetail = (codice: string) => {
 }
 
 onMounted(async () => {
+  loadUserPlan()
   await loadAziende()
   loadData()
 })

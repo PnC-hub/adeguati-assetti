@@ -130,6 +130,220 @@ class AdeguatiAssettiStandaloneController extends Controller
     }
 
     /**
+     * Lista piani disponibili (pubblico)
+     */
+    public function listaPiani(): JsonResponse
+    {
+        $piani = DB::table('aa_piani')->where('attivo', true)->orderBy('prezzo_mensile')->get();
+        return response()->json(['success' => true, 'data' => $piani]);
+    }
+
+    /**
+     * Account utente con piano attuale e limiti
+     */
+    public function account(Request $request): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        $piano = DB::table('aa_piani')->where('codice', $user->piano ?? 'free')->first();
+        $aziende = DB::table('aa_aziende')->where('user_id', $user->id)->where('attiva', true)->count();
+
+        $trialActive = false;
+        $trialDaysLeft = 0;
+        if ($user->piano === 'trial' && $user->trial_ends_at) {
+            $trialEnd = Carbon::parse($user->trial_ends_at);
+            $trialActive = $trialEnd->isFuture();
+            $trialDaysLeft = $trialActive ? (int)now()->diffInDays($trialEnd, false) : 0;
+        }
+
+        // Durante il trial, l'utente ha accesso Pro
+        $pianoEffettivo = ($user->piano === 'trial' && $trialActive) ? 'pro' : ($user->piano ?? 'free');
+        $pianoData = DB::table('aa_piani')->where('codice', $pianoEffettivo)->first();
+        $features = $pianoData ? json_decode($pianoData->features, true) : [];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'nome' => $user->nome,
+                    'cognome' => $user->cognome,
+                    'email' => $user->email,
+                ],
+                'piano' => [
+                    'codice' => $user->piano ?? 'free',
+                    'piano_effettivo' => $pianoEffettivo,
+                    'nome' => $pianoData->nome ?? 'Free',
+                    'prezzo_mensile' => $pianoData->prezzo_mensile ?? 0,
+                    'max_aziende' => $pianoData->max_aziende ?? 1,
+                    'features' => $features,
+                ],
+                'trial' => [
+                    'active' => $trialActive,
+                    'days_left' => $trialDaysLeft,
+                    'ends_at' => $user->trial_ends_at,
+                ],
+                'usage' => [
+                    'aziende_count' => $aziende,
+                    'aziende_limit' => $pianoData->max_aziende ?? 1,
+                ],
+                'stripe' => [
+                    'has_subscription' => !empty($user->stripe_subscription_id),
+                    'customer_id' => $user->stripe_customer_id,
+                ],
+            ]
+        ]);
+    }
+
+    /**
+     * Crea Stripe Checkout session per upgrade
+     */
+    public function upgrade(Request $request): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        $request->validate(['piano' => 'required|string|in:pro,studio']);
+
+        $piano = DB::table('aa_piani')->where('codice', $request->piano)->first();
+        if (!$piano || !$piano->stripe_price_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Piano non disponibile per l\'acquisto. Contattare il supporto.'
+            ], 400);
+        }
+
+        // Per ora, senza Stripe configurato, restituisci info piano
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'piano' => $piano->codice,
+                'prezzo' => $piano->prezzo_mensile,
+                'message' => 'Stripe Checkout non ancora configurato. Contattare info@adeguatiassettiimpresa.it per attivare il piano.',
+                'checkout_url' => null,
+            ]
+        ]);
+    }
+
+    /**
+     * Stripe webhook handler
+     */
+    public function stripeWebhook(Request $request): JsonResponse
+    {
+        $payload = $request->getContent();
+        $sigHeader = $request->header('Stripe-Signature');
+
+        // TODO: Verificare firma Stripe con webhook secret
+        // Per ora log evento
+        $event = json_decode($payload, true);
+        if (!$event || !isset($event['type'])) {
+            return response()->json(['error' => 'Invalid payload'], 400);
+        }
+
+        switch ($event['type']) {
+            case 'checkout.session.completed':
+                $session = $event['data']['object'];
+                $customerId = $session['customer'] ?? null;
+                $subscriptionId = $session['subscription'] ?? null;
+                if ($customerId) {
+                    $user = DB::table('aa_users')->where('stripe_customer_id', $customerId)->first();
+                    if ($user && $subscriptionId) {
+                        DB::table('aa_users')->where('id', $user->id)->update([
+                            'stripe_subscription_id' => $subscriptionId,
+                            'piano' => $session['metadata']['piano'] ?? 'pro',
+                            'piano_attivo_dal' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+                break;
+
+            case 'customer.subscription.deleted':
+                $subscription = $event['data']['object'];
+                $customerId = $subscription['customer'] ?? null;
+                if ($customerId) {
+                    DB::table('aa_users')->where('stripe_customer_id', $customerId)->update([
+                        'piano' => 'free',
+                        'stripe_subscription_id' => null,
+                        'piano_scade_il' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                break;
+
+            case 'invoice.payment_failed':
+                // Log payment failure - could send email alert
+                break;
+        }
+
+        return response()->json(['received' => true]);
+    }
+
+    /**
+     * Redirect a Stripe Billing Portal
+     */
+    public function billingPortal(Request $request): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        if (!$user->stripe_customer_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nessun abbonamento attivo. Effettua prima un upgrade.'
+            ], 400);
+        }
+
+        // TODO: Generare Stripe Billing Portal session URL
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'url' => null,
+                'message' => 'Billing portal non ancora configurato. Contattare info@adeguatiassettiimpresa.it.'
+            ]
+        ]);
+    }
+
+    /**
+     * Helper: ottieni piano effettivo dell'utente con features
+     */
+    private function getUserPlan($user): array
+    {
+        $pianoCode = $user->piano ?? 'free';
+
+        // Trial attivo = accesso Pro
+        if ($pianoCode === 'trial' && $user->trial_ends_at) {
+            $trialEnd = Carbon::parse($user->trial_ends_at);
+            if ($trialEnd->isFuture()) {
+                $pianoCode = 'pro';
+            } else {
+                // Trial scaduto → free
+                $pianoCode = 'free';
+                DB::table('aa_users')->where('id', $user->id)->update([
+                    'piano' => 'free',
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        $piano = DB::table('aa_piani')->where('codice', $pianoCode)->first();
+        $features = $piano ? json_decode($piano->features, true) : [];
+
+        return [
+            'codice' => $pianoCode,
+            'max_aziende' => $piano->max_aziende ?? 1,
+            'features' => $features,
+        ];
+    }
+
+    /**
      * Dashboard per utente standalone
      */
     public function dashboard(Request $request): JsonResponse
@@ -164,6 +378,10 @@ class AdeguatiAssettiStandaloneController extends Controller
             return response()->json(['success' => false, 'message' => 'Nessuna azienda configurata'], 400);
         }
 
+        // Feature gating per piano
+        $userPlan = $this->getUserPlan($user);
+        $features = $userPlan['features'];
+
         // Recupera KPI calcolati
         $kpiValori = DB::table('aa_kpi_valori as v')
             ->join('aa_kpi_definizioni as d', 'v.kpi_codice', '=', 'd.codice')
@@ -173,14 +391,26 @@ class AdeguatiAssettiStandaloneController extends Controller
             ->select('d.*', 'v.valore', 'v.stato', 'v.delta_precedente')
             ->get();
 
-        // Recupera alert attivi
-        $alert = DB::table('aa_alert')
-            ->where('azienda_id', $azienda->id)
-            ->where('anno', $anno)
-            ->where('mese', $mese)
-            ->where('letto', false)
-            ->orderBy('livello', 'desc')
-            ->get();
+        // Recupera alert attivi (solo se feature abilitata)
+        $alert = collect();
+        if (!empty($features['alert'])) {
+            $alert = DB::table('aa_alert')
+                ->where('azienda_id', $azienda->id)
+                ->where('anno', $anno)
+                ->where('mese', $mese)
+                ->where('letto', false)
+                ->orderBy('livello', 'desc')
+                ->get();
+        }
+
+        // Filtra KPI per piano
+        $kpiObbligatori = $kpiValori->where('categoria', 'obbligatorio')->values();
+        $kpiSettoriali = !empty($features['kpi_settoriali'])
+            ? $kpiValori->where('categoria', 'settoriale')->values()
+            : collect();
+        $kpiOperativi = !empty($features['kpi_settoriali'])
+            ? $kpiValori->where('categoria', 'operativo')->values()
+            : collect();
 
         // Calcola score
         $score = $this->calcolaScore($kpiValori);
@@ -196,11 +426,12 @@ class AdeguatiAssettiStandaloneController extends Controller
                 ],
                 'score' => $score,
                 'stato_generale' => $score >= 70 ? 'buono' : ($score >= 50 ? 'attenzione' : 'critico'),
-                'kpi_obbligatori' => $kpiValori->where('categoria', 'obbligatorio')->values(),
-                'kpi_settoriali' => $kpiValori->where('categoria', 'settoriale')->values(),
-                'kpi_operativi' => $kpiValori->where('categoria', 'operativo')->values(),
+                'kpi_obbligatori' => $kpiObbligatori,
+                'kpi_settoriali' => $kpiSettoriali,
+                'kpi_operativi' => $kpiOperativi,
                 'alert' => $alert,
                 'alert_count' => $alert->count(),
+                'piano' => $userPlan,
             ]
         ]);
     }
@@ -470,6 +701,16 @@ class AdeguatiAssettiStandaloneController extends Controller
         $user = $this->getAuthUser($request);
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        // Feature gating: export solo per Pro/Studio
+        $userPlan = $this->getUserPlan($user);
+        if (empty($userPlan['features']['export_pdf'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Funzione disponibile dal piano Pro. Effettua l\'upgrade per esportare i report.',
+                'upgrade_required' => true,
+            ], 403);
         }
 
         $aziendaId = $request->get('azienda_id');

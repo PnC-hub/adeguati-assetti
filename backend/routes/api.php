@@ -19,6 +19,13 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [AdeguatiAssettiAuthController::class, 'forgotPassword']);
 });
 
+// Plan & Account routes
+Route::get('/piani', [AdeguatiAssettiStandaloneController::class, 'listaPiani']);
+Route::get('/account', [AdeguatiAssettiStandaloneController::class, 'account']);
+Route::post('/upgrade', [AdeguatiAssettiStandaloneController::class, 'upgrade']);
+Route::post('/billing-portal', [AdeguatiAssettiStandaloneController::class, 'billingPortal']);
+Route::post('/webhook/stripe', [AdeguatiAssettiStandaloneController::class, 'stripeWebhook']);
+
 // API routes - will be accessible at /api/*
 Route::get('/dashboard', [AdeguatiAssettiStandaloneController::class, 'dashboard']);
 Route::get('/dati-economici/{anno}/{mese}', [AdeguatiAssettiStandaloneController::class, 'getDatiEconomici']);
