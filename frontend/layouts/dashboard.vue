@@ -1,91 +1,156 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center">
-            <NuxtLink to="/dashboard" class="flex items-center gap-2">
-              <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Icon name="heroicons:chart-bar" class="w-5 h-5 text-white" />
-              </div>
-              <span class="font-bold text-gray-900">Adeguati Assetti Impresa</span>
-            </NuxtLink>
+  <div class="min-h-screen bg-gray-50 flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 min-h-screen flex flex-col">
+      <!-- Logo -->
+      <div class="p-4 border-b border-slate-800">
+        <NuxtLink to="/dashboard" class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+            <Icon name="heroicons:scale" class="w-5 h-5 text-white" />
           </div>
+          <span class="font-bold text-white">Adeguati Assetti</span>
+        </NuxtLink>
+      </div>
 
-          <div class="flex items-center gap-4">
-            <NuxtLink to="/dashboard" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-              Dashboard
-            </NuxtLink>
-            <NuxtLink to="/dashboard/inserimento" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-              Inserimento Dati
-            </NuxtLink>
-            <NuxtLink to="/dashboard/checklist" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-              Checklist 2086
-            </NuxtLink>
-            <NuxtLink to="/dashboard/account" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-              Account
-            </NuxtLink>
-            <button @click="logout" class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
-              Esci
-            </button>
+      <!-- Tenant Switcher -->
+      <div class="p-4 border-b border-slate-800">
+        <TenantSwitcher />
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 p-4 space-y-1">
+        <NuxtLink
+          v-for="item in navigation"
+          :key="item.to"
+          :to="item.to"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+          :class="[
+            isActiveRoute(item.to)
+              ? 'bg-red-600/20 text-red-400'
+              : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+          ]"
+        >
+          <Icon :name="item.icon" class="w-5 h-5" />
+          {{ item.label }}
+        </NuxtLink>
+      </nav>
+
+      <!-- Current Tenant Info -->
+      <div v-if="currentTenant && !isAggregated" class="p-4 border-t border-slate-800">
+        <div class="text-xs text-slate-500 mb-1">Score Compliance</div>
+        <div class="flex items-center gap-2">
+          <div class="flex-1 bg-slate-700 rounded-full h-2">
+            <div
+              class="h-2 rounded-full transition-all"
+              :class="{
+                'bg-green-500': (currentTenant.complianceScore || 0) >= 80,
+                'bg-yellow-500': (currentTenant.complianceScore || 0) >= 50 && (currentTenant.complianceScore || 0) < 80,
+                'bg-red-500': (currentTenant.complianceScore || 0) < 50
+              }"
+              :style="{ width: `${currentTenant.complianceScore || 0}%` }"
+            ></div>
+          </div>
+          <span class="text-white font-bold text-sm">{{ currentTenant.complianceScore || '—' }}%</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-2">
+          {{ currentTenant.isObbligata ? 'Soggetta ad obbligo' : 'Non obbligata' }}
+        </div>
+      </div>
+
+      <!-- Aggregated Stats -->
+      <div v-else-if="isAggregated" class="p-4 border-t border-slate-800">
+        <div class="text-xs text-slate-500 mb-2">Riepilogo Portafoglio</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-slate-800 rounded p-2 text-center">
+            <div class="text-green-400 font-bold">{{ aggregatedStats.inRegola }}</div>
+            <div class="text-slate-500">In regola</div>
+          </div>
+          <div class="bg-slate-800 rounded p-2 text-center">
+            <div class="text-red-400 font-bold">{{ aggregatedStats.critiche }}</div>
+            <div class="text-slate-500">Critiche</div>
           </div>
         </div>
       </div>
-    </nav>
 
-    <!-- Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <slot />
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 py-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Disclaimer -->
-        <div class="bg-gray-800/50 rounded-lg p-6 mb-8">
-          <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
-            <Icon name="heroicons:exclamation-triangle" class="w-5 h-5 text-yellow-500" />
-            Avvertenza
-          </h4>
-          <p class="text-sm leading-relaxed">
-            Le informazioni, i dati, gli indicatori (KPI) e le analisi forniti da questo servizio hanno esclusivamente finalita informative e di supporto gestionale.
-            Non costituiscono in alcun modo consulenza professionale di natura legale, fiscale, contabile o finanziaria, ne sostituiscono il parere di professionisti
-            abilitati quali commercialisti, revisori contabili, avvocati o consulenti del lavoro iscritti ai rispettivi albi professionali.
-          </p>
-          <p class="text-sm leading-relaxed mt-3">
-            L'utente e tenuto a verificare autonomamente l'accuratezza dei dati inseriti e delle elaborazioni ottenute, e a rivolgersi a professionisti qualificati
-            per ogni decisione aziendale, adempimento normativo o valutazione degli assetti organizzativi, amministrativi e contabili ai sensi dell'Art. 2086 del Codice Civile.
-          </p>
-          <p class="text-sm leading-relaxed mt-3">
-            Smiledoc S.r.l. declina ogni responsabilita per danni diretti o indiretti derivanti dall'utilizzo delle informazioni fornite dal servizio.
-          </p>
-        </div>
-
-        <!-- Copyright e Dati Legali -->
-        <div class="border-t border-gray-800 pt-8 text-center">
-          <div class="flex justify-center gap-4 mb-4 text-sm">
-            <NuxtLink to="/termini-servizio" class="text-gray-400 hover:text-white">Termini di Servizio</NuxtLink>
-            <span class="text-gray-600">|</span>
-            <NuxtLink to="/privacy-policy" class="text-gray-400 hover:text-white">Privacy Policy</NuxtLink>
-          </div>
-          <p class="text-sm mb-4">&copy; 2026 Adeguati Assetti Impresa. Tutti i diritti riservati.</p>
-          <div class="text-xs text-gray-500 space-y-1">
-            <p>Smiledoc S.r.l. - Via Gianni Metello 37, 51100 Pistoia (PT)</p>
-            <p>P.IVA: IT15131801001</p>
-          </div>
-        </div>
+      <!-- Logout -->
+      <div class="p-4 border-t border-slate-800">
+        <button
+          @click="logout"
+          class="flex items-center gap-2 w-full px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition text-sm"
+        >
+          <Icon name="heroicons:arrow-right-on-rectangle" class="w-5 h-5" />
+          Esci
+        </button>
       </div>
-    </footer>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Top Bar -->
+      <header class="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6">
+        <div class="flex-1">
+          <h1 v-if="currentTenant && !isAggregated" class="text-lg font-semibold text-gray-900">
+            {{ currentTenant.ragioneSociale }}
+          </h1>
+          <h1 v-else-if="isAggregated" class="text-lg font-semibold text-gray-900">
+            Vista Aggregata - {{ tenants.length }} Aziende
+          </h1>
+        </div>
+        <div class="flex items-center gap-4">
+          <span v-if="currentTenant && !isAggregated" class="text-sm text-gray-500">
+            P.IVA {{ currentTenant.partitaIva }}
+          </span>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="flex-1 p-6 overflow-auto">
+        <!-- Aggregated View Banner -->
+        <div v-if="isAggregated" class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3">
+          <Icon name="heroicons:information-circle" class="w-6 h-6 text-amber-600" />
+          <div>
+            <div class="font-medium text-amber-800">Vista Aggregata Attiva</div>
+            <div class="text-sm text-amber-600">Stai visualizzando i dati di {{ tenants.length }} aziende. Seleziona un'azienda per modificare i dati.</div>
+          </div>
+        </div>
+
+        <slot />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 const router = useRouter()
+const route = useRoute()
+
+const {
+  currentTenant,
+  tenants,
+  isAggregated,
+  aggregatedStats
+} = useTenant()
+
+const navigation = [
+  { label: 'Dashboard', icon: 'heroicons:home', to: '/dashboard' },
+  { label: 'Inserimento Dati', icon: 'heroicons:pencil-square', to: '/dashboard/inserimento' },
+  { label: 'Continuità', icon: 'heroicons:arrow-trending-up', to: '/dashboard/continuita' },
+  { label: 'Checklist 2086', icon: 'heroicons:clipboard-document-check', to: '/dashboard/checklist' },
+  { label: 'Invita Colleghi', icon: 'heroicons:gift', to: '/dashboard/referral' },
+  { label: 'Account', icon: 'heroicons:user-circle', to: '/dashboard/account' },
+]
+
+const isActiveRoute = (path: string) => {
+  if (path === '/dashboard') {
+    return route.path === '/dashboard'
+  }
+  return route.path.startsWith(path)
+}
 
 const logout = () => {
   localStorage.removeItem('aa_token')
   localStorage.removeItem('aa_user')
+  localStorage.removeItem('aa_tenant_id')
   router.push('/login')
 }
 </script>

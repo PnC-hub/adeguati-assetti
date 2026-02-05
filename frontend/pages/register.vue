@@ -1,11 +1,19 @@
 <template>
   <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <!-- Referral Banner -->
+    <div v-if="referralCode" class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
+      <div class="flex items-center gap-2 text-green-700">
+        <Icon name="heroicons:gift" class="w-5 h-5" />
+        <span class="text-sm font-medium">Sei stato invitato da un collega!</span>
+      </div>
+    </div>
+
     <div class="text-center mb-8">
       <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
         <Icon name="heroicons:chart-bar" class="w-7 h-7 text-white" />
       </div>
       <h1 class="text-2xl font-bold text-gray-900">Crea il tuo account</h1>
-      <p class="text-gray-600 mt-1">14 giorni di prova gratuita</p>
+      <p class="text-gray-600 mt-1">Gratis per sempre, nessuna carta richiesta</p>
     </div>
 
     <form @submit.prevent="handleRegister" class="space-y-4">
@@ -113,7 +121,13 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
 const config = useRuntimeConfig()
+
+// Legge il codice referral dall'URL (?ref=XXXXXXXX)
+const referralCode = computed(() => {
+  return (route.query.ref as string) || ''
+})
 
 const form = reactive({
   nome: '',
@@ -138,6 +152,20 @@ const handleRegister = async () => {
   error.value = ''
 
   try {
+    // Prepara i parametri includendo il referral code se presente
+    const params: Record<string, string> = {
+      nome: form.nome,
+      cognome: form.cognome,
+      azienda: form.azienda,
+      email: form.email,
+      password: form.password,
+      password_confirmation: form.password_confirmation
+    }
+
+    if (referralCode.value) {
+      params.referral_code = referralCode.value
+    }
+
     const response = await $fetch<{ success: boolean; data: { token: string; user: any }; message?: string }>(
       `${config.public.apiBase}/auth/register`,
       {
@@ -147,14 +175,7 @@ const handleRegister = async () => {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Accept': 'application/json'
         },
-        body: new URLSearchParams({
-          nome: form.nome,
-          cognome: form.cognome,
-          azienda: form.azienda,
-          email: form.email,
-          password: form.password,
-          password_confirmation: form.password_confirmation
-        }).toString()
+        body: new URLSearchParams(params).toString()
       }
     )
 

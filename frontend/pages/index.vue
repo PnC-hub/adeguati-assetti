@@ -40,13 +40,13 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
               <NuxtLink to="/register" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-50 transition text-center">
-                Inizia Prova Gratuita
+                Inizia Gratis
               </NuxtLink>
               <button @click="showDemo = true" class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white/10 transition">
                 Guarda Demo Live
               </button>
             </div>
-            <p class="text-blue-200 text-sm mt-4">14 giorni gratis. Nessuna carta richiesta.</p>
+            <p class="text-blue-200 text-sm mt-4">Gratis per sempre. Nessuna carta richiesta.</p>
           </div>
 
           <!-- Mini Dashboard Preview -->
@@ -396,6 +396,84 @@
       </div>
     </section>
 
+    <!-- Continuita Aziendale Section -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="border-l-4 border-red-500 pl-6 mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-3">Monitoraggio Continuità Aziendale</h2>
+          <p class="text-gray-600 text-lg">
+            Indicatori ISA 570, DSCR prospettico e segnali CCII per valutare il going concern della tua azienda
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+          <div class="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 border border-blue-200 hover:shadow-lg transition">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Icon name="heroicons:chart-bar" class="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 class="font-bold text-gray-900 text-lg">DSCR Prospettico</h3>
+            </div>
+            <p class="text-gray-600 text-sm">
+              Debt Service Coverage Ratio per verificare la sostenibilità del debito su base prospettica e garantire la continuità aziendale
+            </p>
+          </div>
+
+          <div class="bg-gradient-to-br from-yellow-50 to-white rounded-xl p-6 border border-yellow-200 hover:shadow-lg transition">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <Icon name="heroicons:exclamation-triangle" class="w-6 h-6 text-yellow-600" />
+              </div>
+              <h3 class="font-bold text-gray-900 text-lg">Indicatori ISA 570</h3>
+            </div>
+            <p class="text-gray-600 text-sm">
+              Segnali di allerta going concern secondo gli standard internazionali di revisione per prevenire situazioni di crisi
+            </p>
+          </div>
+
+          <div class="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 border border-green-200 hover:shadow-lg transition">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Icon name="heroicons:shield-check" class="w-6 h-6 text-green-600" />
+              </div>
+              <h3 class="font-bold text-gray-900 text-lg">Segnali CCII</h3>
+            </div>
+            <p class="text-gray-600 text-sm">
+              Monitoraggio indicatori previsti dal Codice della Crisi d'Impresa e dell'Insolvenza per rilevare tempestivamente squilibri
+            </p>
+          </div>
+
+          <div class="bg-gradient-to-br from-purple-50 to-white rounded-xl p-6 border border-purple-200 hover:shadow-lg transition">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Icon name="heroicons:clipboard-document-check" class="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 class="font-bold text-gray-900 text-lg">Piano di Continuità</h3>
+            </div>
+            <p class="text-gray-600 text-sm">
+              Documento strutturato per dimostrare la continuità aziendale con proiezioni finanziarie e azioni correttive pianificate
+            </p>
+          </div>
+        </div>
+
+        <div class="text-center mb-6">
+          <NuxtLink to="/register" class="inline-block bg-red-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-red-700 transition shadow-lg">
+            Verifica la Continuità della Tua Azienda
+          </NuxtLink>
+        </div>
+
+        <!-- Ecosystem Badge -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 text-center border border-blue-200">
+          <div class="flex items-center justify-center gap-2 text-sm text-gray-700">
+            <Icon name="heroicons:link" class="w-5 h-5 text-blue-600" />
+            <span>Alimenta automaticamente il</span>
+            <a href="https://imperum.it" target="_blank" class="font-semibold text-blue-600 hover:text-blue-800 underline">
+              Cruscotto Compliance Art. 2086 di Imperium
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- FAQ Section -->
     <section class="py-20 bg-white">
@@ -424,9 +502,17 @@
             </p>
           </div>
           <div class="border border-gray-200 rounded-lg p-6">
-            <h3 class="font-bold text-gray-900 mb-2">Posso provare prima di pagare?</h3>
+            <h3 class="font-bold text-gray-900 mb-2">Devo pagare qualcosa?</h3>
             <p class="text-gray-600">
-              Certo! Offriamo 14 giorni di prova gratuita senza carta di credito. Puoi anche accedere alla demo live per vedere il prodotto in azione.
+              No! Il servizio e completamente gratuito con accesso ai 7 KPI obbligatori. Puoi sbloccare funzionalita extra invitando colleghi, oppure accedere alla demo live per vedere il prodotto in azione.
+            </p>
+          </div>
+          <div class="border border-gray-200 rounded-lg p-6">
+            <h3 class="font-bold text-gray-900 mb-2">Cos'è il monitoraggio della continuità aziendale?</h3>
+            <p class="text-gray-600">
+              È la verifica periodica che l'azienda sia in grado di proseguire l'attività nel prevedibile futuro. Include indicatori come DSCR prospettico,
+              segnali ISA 570 (standard internazionali di revisione) e parametri CCII (Codice della Crisi d'Impresa e dell'Insolvenza) per rilevare
+              tempestivamente eventuali squilibri patrimoniali, economici o finanziari.
             </p>
           </div>
         </div>
@@ -434,95 +520,82 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 bg-blue-600 text-white">
+    <section class="py-20 bg-gray-900 text-white">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl md:text-4xl font-bold mb-4">Non aspettare che sia troppo tardi</h2>
-        <p class="text-xl text-blue-100 mb-8">
-          Ogni mese senza monitoraggio e un rischio per te e la tua azienda. Inizia oggi stesso.
+        <p class="text-xl text-gray-300 mb-8">
+          Ogni mese senza monitoraggio e un rischio per te e la tua azienda. Inizia oggi stesso, e gratis.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
-          <NuxtLink to="/register" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-50 transition">
-            Inizia Prova Gratuita
+          <NuxtLink to="/register" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 transition">
+            Crea Account Gratuito
           </NuxtLink>
           <button @click="showDemo = true" class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white/10 transition">
             Accedi alla Demo
           </button>
         </div>
-        <p class="text-blue-200 text-sm mt-6">
+        <p class="text-gray-400 text-sm mt-6">
           Unisciti a oltre 150 aziende che hanno gia scelto Adeguati Assetti
         </p>
       </div>
     </section>
 
-    <!-- Pricing -->
-    <section id="pricing" class="py-20 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Scegli il piano adatto alla tua azienda</h2>
-          <p class="text-gray-600 mt-4 text-lg">Inizia gratis, scala quando vuoi</p>
+    <!-- Freemium Model Section -->
+    <section id="pricing" class="py-20 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <Icon name="heroicons:gift" class="w-5 h-5" />
+          100% Gratuito
         </div>
-        <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <!-- Free -->
-          <div class="border border-gray-200 rounded-2xl p-8 hover:shadow-lg transition">
-            <h3 class="text-xl font-bold text-gray-900">Free</h3>
-            <p class="text-gray-500 mt-2">Per iniziare a monitorare</p>
-            <div class="mt-6 mb-8">
-              <span class="text-4xl font-bold text-gray-900">&euro;0</span>
-              <span class="text-gray-500">/mese</span>
-            </div>
-            <ul class="space-y-3 text-sm text-gray-600 mb-8">
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> 1 azienda</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> 7 KPI obbligatori CNDCEC</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Score di salute aziendale</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Dashboard base</li>
-              <li class="flex items-center gap-2 text-gray-400"><Icon name="heroicons:x-mark" class="w-5 h-5 flex-shrink-0" /> KPI settoriali</li>
-              <li class="flex items-center gap-2 text-gray-400"><Icon name="heroicons:x-mark" class="w-5 h-5 flex-shrink-0" /> Alert automatici</li>
-            </ul>
-            <NuxtLink to="/register" class="block text-center w-full border-2 border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
-              Inizia Gratis
-            </NuxtLink>
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Inizia a monitorare la tua azienda oggi</h2>
+        <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          Accesso completo ai 7 KPI obbligatori CNDCEC. Gratis, per sempre.
+        </p>
+
+        <div class="bg-white rounded-2xl p-8 text-gray-900 max-w-xl mx-auto shadow-2xl">
+          <div class="flex items-center justify-center gap-3 mb-6">
+            <div class="text-5xl font-bold">Gratis</div>
           </div>
-          <!-- Pro -->
-          <div class="border-2 border-blue-600 rounded-2xl p-8 shadow-lg relative">
-            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-sm font-bold px-4 py-1 rounded-full">Consigliato</div>
-            <h3 class="text-xl font-bold text-gray-900">Pro</h3>
-            <p class="text-gray-500 mt-2">Per l'imprenditore attento</p>
-            <div class="mt-6 mb-8">
-              <span class="text-4xl font-bold text-gray-900">&euro;49</span>
-              <span class="text-gray-500">/mese</span>
-            </div>
-            <ul class="space-y-3 text-sm text-gray-600 mb-8">
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> 1 azienda</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Tutti i KPI obbligatori + settoriali</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Soglie CNDCEC per codice ATECO</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Alert automatici email</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Report PDF esportabile</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Storico dati illimitato</li>
-            </ul>
-            <NuxtLink to="/register" class="block text-center w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-              Prova Gratis 14 Giorni
-            </NuxtLink>
+
+          <ul class="space-y-3 text-left mb-8">
+            <li class="flex items-center gap-3">
+              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
+              <span>7 KPI obbligatori CNDCEC</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
+              <span>Score di salute aziendale</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
+              <span>Dashboard completa</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
+              <span>Checklist compliance Art. 2086</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
+              <span>Storico ultimi 3 mesi</span>
+            </li>
+          </ul>
+
+          <NuxtLink to="/register" class="block w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 transition text-lg">
+            Crea Account Gratuito
+          </NuxtLink>
+
+          <p class="text-gray-500 text-sm mt-4">Nessuna carta di credito richiesta</p>
+        </div>
+
+        <!-- Referral Teaser -->
+        <div class="mt-12 bg-white/10 rounded-xl p-6 max-w-2xl mx-auto">
+          <div class="flex items-center justify-center gap-2 mb-3">
+            <Icon name="heroicons:gift" class="w-6 h-6 text-yellow-300" />
+            <span class="font-semibold">Sblocca funzionalita extra invitando colleghi</span>
           </div>
-          <!-- Studio -->
-          <div class="border border-gray-200 rounded-2xl p-8 hover:shadow-lg transition">
-            <h3 class="text-xl font-bold text-gray-900">Studio</h3>
-            <p class="text-gray-500 mt-2">Per commercialisti e consulenti</p>
-            <div class="mt-6 mb-8">
-              <span class="text-4xl font-bold text-gray-900">&euro;149</span>
-              <span class="text-gray-500">/mese</span>
-            </div>
-            <ul class="space-y-3 text-sm text-gray-600 mb-8">
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Fino a 20 aziende</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Tutto il piano Pro incluso</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Gestione multi-azienda</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Report con branding personalizzato</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Supporto prioritario</li>
-              <li class="flex items-center gap-2"><Icon name="heroicons:check" class="w-5 h-5 text-green-500 flex-shrink-0" /> Dashboard comparativa</li>
-            </ul>
-            <NuxtLink to="/register" class="block text-center w-full border-2 border-blue-600 text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
-              Prova Gratis 14 Giorni
-            </NuxtLink>
-          </div>
+          <p class="text-blue-100 text-sm">
+            Ogni collega che inviti ti regala +3 mesi di storico dati. Invitane 3 e sblocchi l'export PDF, invitane 5 e ottieni gli alert automatici.
+          </p>
         </div>
       </div>
     </section>

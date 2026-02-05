@@ -139,7 +139,7 @@ class AdeguatiAssettiStandaloneController extends Controller
     }
 
     /**
-     * Account utente con piano attuale e limiti
+     * Account utente con piano attuale, limiti e referral
      */
     public function account(Request $request): JsonResponse
     {
@@ -151,18 +151,33 @@ class AdeguatiAssettiStandaloneController extends Controller
         $piano = DB::table('aa_piani')->where('codice', $user->piano ?? 'free')->first();
         $aziende = DB::table('aa_aziende')->where('user_id', $user->id)->where('attiva', true)->count();
 
-        $trialActive = false;
-        $trialDaysLeft = 0;
-        if ($user->piano === 'trial' && $user->trial_ends_at) {
-            $trialEnd = Carbon::parse($user->trial_ends_at);
-            $trialActive = $trialEnd->isFuture();
-            $trialDaysLeft = $trialActive ? (int)now()->diffInDays($trialEnd, false) : 0;
-        }
+        // Freemium model: calcola mesi di storico visibili
+        $storicoMesiBase = 3;
+        $storicoMesiExtra = $user->storico_mesi_extra ?? 0;
+        $storicoMesiTotali = $storicoMesiBase + $storicoMesiExtra;
 
-        // Durante il trial, l'utente ha accesso Pro
-        $pianoEffettivo = ($user->piano === 'trial' && $trialActive) ? 'pro' : ($user->piano ?? 'free');
+        // Referral count e sblocchi
+        $referralCount = $user->referral_count ?? 0;
+
+        // Sblocchi basati su referral:
+        // 3+ referral = export PDF sbloccato
+        // 5+ referral = alert automatici sbloccati
+        // 7+ referral = KPI settoriali ATECO
+        // 10+ referral = multi-azienda
+        $hasExportPdf = $referralCount >= 3 || in_array($user->piano, ['pro', 'studio']);
+        $hasAlerts = $referralCount >= 5 || in_array($user->piano, ['pro', 'studio']);
+        $hasKpiSettoriali = $referralCount >= 7 || in_array($user->piano, ['pro', 'studio']);
+        $hasMultiAzienda = $referralCount >= 10 || in_array($user->piano, ['studio']);
+
+        // Piano effettivo basato su piano utente
+        $pianoEffettivo = $user->piano ?? 'free';
         $pianoData = DB::table('aa_piani')->where('codice', $pianoEffettivo)->first();
-        $features = $pianoData ? json_decode($pianoData->features, true) : [];
+
+        // Features combinate (piano + sblocchi referral)
+        $features = $pianoData ? json_decode($pianoData->features ?? '{}', true) : [];
+        $features['export_pdf'] = $hasExportPdf;
+        $features['alert'] = $hasAlerts;
+        $features['kpi_settoriali'] = $hasKpiSettoriali;
 
         return response()->json([
             'success' => true,
@@ -181,10 +196,22 @@ class AdeguatiAssettiStandaloneController extends Controller
                     'max_aziende' => $pianoData->max_aziende ?? 1,
                     'features' => $features,
                 ],
-                'trial' => [
-                    'active' => $trialActive,
-                    'days_left' => $trialDaysLeft,
-                    'ends_at' => $user->trial_ends_at,
+                'freemium' => [
+                    'storico_mesi_base' => $storicoMesiBase,
+                    'storico_mesi_extra' => $storicoMesiExtra,
+                    'storico_mesi_totali' => $storicoMesiTotali,
+                    'storico_mesi_max' => 12,
+                ],
+                'referral' => [
+                    'code' => $user->referral_code,
+                    'count' => $referralCount,
+                    'mesi_per_referral' => 3,
+                    'sblocchi' => [
+                        'exportPdf' => $hasExportPdf,
+                        'alerts' => $hasAlerts,
+                        'kpiSettoriali' => $hasKpiSettoriali,
+                        'multiAzienda' => $hasMultiAzienda,
+                    ],
                 ],
                 'usage' => [
                     'aziende_count' => $aziende,
@@ -199,6 +226,65 @@ class AdeguatiAssettiStandaloneController extends Controller
     }
 
     /**
+     * Statistiche referral dell'utente
+     */
+    public function referralStats(Request $request): JsonResponse
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
+        }
+
+        // Lista referral effettuati
+        $referrals = DB::table('aa_referrals as r')
+            ->join('aa_users as u', 'r.referred_id', '=', 'u.id')
+            ->where('r.referrer_id', $user->id)
+            ->select('u.nome', 'u.cognome', 'r.created_at')
+            ->orderBy('r.created_at', 'desc')
+            ->limit(20)
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'nome' => substr($r->nome, 0, 1) . '***',
+                    'cognome' => substr($r->cognome, 0, 1) . '***',
+                    'data' => Carbon::parse($r->created_at)->format('d/m/Y'),
+                ];
+            });
+
+        $storicoMesiBase = 3;
+        $storicoMesiExtra = $user->storico_mesi_extra ?? 0;
+        $referralCount = $user->referral_count ?? 0;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'referral_code' => $user->referral_code,
+                'referral_link' => 'https://adeguatiassettiimpresa.it/register?ref=' . $user->referral_code,
+                'count' => $referralCount,
+                'storico_mesi_base' => $storicoMesiBase,
+                'storico_mesi_extra' => $storicoMesiExtra,
+                'storico_mesi_totali' => $storicoMesiBase + $storicoMesiExtra,
+                'storico_mesi_max' => 12,
+                'referrals' => $referrals,
+                'sblocchi' => [
+                    [
+                        'nome' => 'Export PDF',
+                        'descrizione' => 'Genera report PDF professionali',
+                        'richiesti' => 3,
+                        'sbloccato' => $referralCount >= 3,
+                    ],
+                    [
+                        'nome' => 'Alert Automatici',
+                        'descrizione' => 'Ricevi notifiche email sugli alert',
+                        'richiesti' => 5,
+                        'sbloccato' => $referralCount >= 5,
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
      * Crea Stripe Checkout session per upgrade
      */
     public function upgrade(Request $request): JsonResponse
@@ -208,26 +294,84 @@ class AdeguatiAssettiStandaloneController extends Controller
             return response()->json(['success' => false, 'message' => 'Non autorizzato'], 401);
         }
 
-        $request->validate(['piano' => 'required|string|in:pro,studio']);
+        $request->validate([
+            'piano' => 'required|string|in:pro,studio',
+            'billing' => 'sometimes|string|in:monthly,annual',
+        ]);
 
+        $billing = $request->billing ?? 'monthly';
         $piano = DB::table('aa_piani')->where('codice', $request->piano)->first();
+
         if (!$piano || !$piano->stripe_price_id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Piano non disponibile per l\'acquisto. Contattare il supporto.'
+                'message' => 'Piano non disponibile per l\'acquisto.'
             ], 400);
         }
 
-        // Per ora, senza Stripe configurato, restituisci info piano
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'piano' => $piano->codice,
-                'prezzo' => $piano->prezzo_mensile,
-                'message' => 'Stripe Checkout non ancora configurato. Contattare info@adeguatiassettiimpresa.it per attivare il piano.',
-                'checkout_url' => null,
-            ]
-        ]);
+        // Determine price ID based on billing period using config()
+        $priceId = config('stripe.prices.' . $request->piano . '.' . $billing);
+        if (!$priceId) {
+            $priceId = $piano->stripe_price_id; // fallback to DB
+        }
+
+        try {
+            $stripe = new \Stripe\StripeClient(config('stripe.secret_key'));
+
+            // Create or retrieve Stripe Customer
+            $customerId = $user->stripe_customer_id;
+            if (!$customerId) {
+                $customer = $stripe->customers->create([
+                    'email' => $user->email,
+                    'name' => trim(($user->nome ?? '') . ' ' . ($user->cognome ?? '')),
+                    'metadata' => [
+                        'aa_user_id' => $user->id,
+                    ],
+                ]);
+                $customerId = $customer->id;
+                DB::table('aa_users')->where('id', $user->id)->update([
+                    'stripe_customer_id' => $customerId,
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // Create Checkout Session
+            $appUrl = config('app.url', 'https://adeguatiassettiimpresa.it');
+            $session = $stripe->checkout->sessions->create([
+                'customer' => $customerId,
+                'mode' => 'subscription',
+                'line_items' => [[
+                    'price' => $priceId,
+                    'quantity' => 1,
+                ]],
+                'metadata' => [
+                    'piano' => $request->piano,
+                    'user_id' => $user->id,
+                ],
+                'subscription_data' => [
+                    'metadata' => [
+                        'piano' => $request->piano,
+                        'user_id' => $user->id,
+                    ],
+                ],
+                'success_url' => $appUrl . '/dashboard/account?upgrade=success',
+                'cancel_url' => $appUrl . '/dashboard/account?upgrade=cancelled',
+                'allow_promotion_codes' => true,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'checkout_url' => $session->url,
+                    'session_id' => $session->id,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore durante la creazione del checkout: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -238,24 +382,42 @@ class AdeguatiAssettiStandaloneController extends Controller
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
 
-        // TODO: Verificare firma Stripe con webhook secret
-        // Per ora log evento
-        $event = json_decode($payload, true);
-        if (!$event || !isset($event['type'])) {
-            return response()->json(['error' => 'Invalid payload'], 400);
+        // Verify webhook signature if secret is configured
+        $webhookSecret = config('stripe.webhook_secret');
+        if ($webhookSecret) {
+            try {
+                $event = \Stripe\Webhook::constructEvent($payload, $sigHeader, $webhookSecret);
+            } catch (\Stripe\Exception\SignatureVerificationException $e) {
+                return response()->json(['error' => 'Invalid signature'], 400);
+            }
+        } else {
+            $event = json_decode($payload);
+            if (!$event || !isset($event->type)) {
+                return response()->json(['error' => 'Invalid payload'], 400);
+            }
         }
 
-        switch ($event['type']) {
+        $eventType = is_array($event) ? ($event['type'] ?? null) : ($event->type ?? null);
+        $dataObject = is_array($event) ? ($event['data']['object'] ?? null) : ($event->data->object ?? null);
+
+        if (!$eventType || !$dataObject) {
+            return response()->json(['error' => 'Invalid event structure'], 400);
+        }
+
+        // Convert to array for consistent access
+        $obj = is_array($dataObject) ? $dataObject : json_decode(json_encode($dataObject), true);
+
+        switch ($eventType) {
             case 'checkout.session.completed':
-                $session = $event['data']['object'];
-                $customerId = $session['customer'] ?? null;
-                $subscriptionId = $session['subscription'] ?? null;
+                $customerId = $obj['customer'] ?? null;
+                $subscriptionId = $obj['subscription'] ?? null;
+                $metadata = $obj['metadata'] ?? [];
                 if ($customerId) {
                     $user = DB::table('aa_users')->where('stripe_customer_id', $customerId)->first();
                     if ($user && $subscriptionId) {
                         DB::table('aa_users')->where('id', $user->id)->update([
                             'stripe_subscription_id' => $subscriptionId,
-                            'piano' => $session['metadata']['piano'] ?? 'pro',
+                            'piano' => $metadata['piano'] ?? 'pro',
                             'piano_attivo_dal' => now(),
                             'updated_at' => now(),
                         ]);
@@ -264,8 +426,7 @@ class AdeguatiAssettiStandaloneController extends Controller
                 break;
 
             case 'customer.subscription.deleted':
-                $subscription = $event['data']['object'];
-                $customerId = $subscription['customer'] ?? null;
+                $customerId = $obj['customer'] ?? null;
                 if ($customerId) {
                     DB::table('aa_users')->where('stripe_customer_id', $customerId)->update([
                         'piano' => 'free',
@@ -277,7 +438,8 @@ class AdeguatiAssettiStandaloneController extends Controller
                 break;
 
             case 'invoice.payment_failed':
-                // Log payment failure - could send email alert
+                $customerId = $obj['customer'] ?? null;
+                \Log::warning('Stripe payment failed', ['customer' => $customerId]);
                 break;
         }
 
@@ -301,24 +463,37 @@ class AdeguatiAssettiStandaloneController extends Controller
             ], 400);
         }
 
-        // TODO: Generare Stripe Billing Portal session URL
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'url' => null,
-                'message' => 'Billing portal non ancora configurato. Contattare info@adeguatiassettiimpresa.it.'
-            ]
-        ]);
+        try {
+            $stripe = new \Stripe\StripeClient(config('stripe.secret_key'));
+            $appUrl = config('app.url', 'https://adeguatiassettiimpresa.it');
+
+            $session = $stripe->billingPortal->sessions->create([
+                'customer' => $user->stripe_customer_id,
+                'return_url' => $appUrl . '/dashboard/account',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'url' => $session->url,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore billing portal: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
-     * Helper: ottieni piano effettivo dell'utente con features
+     * Helper: ottieni piano effettivo dell'utente con features e limiti freemium
      */
     private function getUserPlan($user): array
     {
         $pianoCode = $user->piano ?? 'free';
 
-        // Trial attivo = accesso Pro
+        // Trial attivo = accesso Pro (backward compatibility)
         if ($pianoCode === 'trial' && $user->trial_ends_at) {
             $trialEnd = Carbon::parse($user->trial_ends_at);
             if ($trialEnd->isFuture()) {
@@ -334,12 +509,33 @@ class AdeguatiAssettiStandaloneController extends Controller
         }
 
         $piano = DB::table('aa_piani')->where('codice', $pianoCode)->first();
-        $features = $piano ? json_decode($piano->features, true) : [];
+        $features = $piano ? json_decode($piano->features ?? '{}', true) : [];
+
+        // Calcola limiti freemium
+        $storicoMesiBase = 3;
+        $storicoMesiExtra = $user->storico_mesi_extra ?? 0;
+        $storicoMesiTotali = $storicoMesiBase + $storicoMesiExtra;
+        $referralCount = $user->referral_count ?? 0;
+
+        // Sblocchi basati su referral (solo per piano free)
+        if ($pianoCode === 'free') {
+            $features['export_pdf'] = $referralCount >= 3;
+            $features['alert'] = $referralCount >= 5;
+            $features['kpi_settoriali'] = $referralCount >= 7;
+            $features['multi_azienda'] = $referralCount >= 10;
+        }
+
+        // Pro e Studio hanno storico illimitato
+        if (in_array($pianoCode, ['pro', 'studio'])) {
+            $storicoMesiTotali = 999; // illimitato
+        }
 
         return [
             'codice' => $pianoCode,
             'max_aziende' => $piano->max_aziende ?? 1,
             'features' => $features,
+            'storico_mesi' => $storicoMesiTotali,
+            'referral_count' => $referralCount,
         ];
     }
 

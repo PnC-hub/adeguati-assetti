@@ -22,19 +22,38 @@ class AdeguatiAssettiAuthController extends Controller
             'azienda' => 'required|string|max:255',
             'email' => 'required|email|unique:aa_users,email',
             'password' => 'required|string|min:8|confirmed',
+            'referral_code' => 'nullable|string|max:20',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Create user
+            // Generate unique referral code for this user
+            $myReferralCode = strtoupper(Str::random(8));
+
+            // Check if referred by someone
+            $referredBy = null;
+            if ($request->referral_code) {
+                $referrer = DB::table('aa_users')
+                    ->where('referral_code', strtoupper($request->referral_code))
+                    ->first();
+                if ($referrer) {
+                    $referredBy = $referrer->id;
+                }
+            }
+
+            // Create user with freemium model
+            // Freemium: piano = 'free', storico_mesi_extra = 0 (base 3 mesi)
             $userId = DB::table('aa_users')->insertGetId([
                 'nome' => $request->nome,
                 'cognome' => $request->cognome,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'piano' => 'trial',
-                'trial_ends_at' => now()->addDays(14),
+                'piano' => 'free',
+                'referral_code' => $myReferralCode,
+                'referred_by' => $referredBy,
+                'storico_mesi_extra' => 0,
+                'referral_count' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -59,6 +78,26 @@ class AdeguatiAssettiAuthController extends Controller
                 'created_at' => now(),
             ]);
 
+            // If referred by someone, credit them with +3 months
+            if ($referredBy) {
+                $referrer = DB::table('aa_users')->where('id', $referredBy)->first();
+                $newStorico = min(9, ($referrer->storico_mesi_extra ?? 0) + 3); // Max 12 mesi totali (3 base + 9 extra)
+                $newCount = ($referrer->referral_count ?? 0) + 1;
+
+                DB::table('aa_users')->where('id', $referredBy)->update([
+                    'storico_mesi_extra' => $newStorico,
+                    'referral_count' => $newCount,
+                    'updated_at' => now(),
+                ]);
+
+                // Log referral
+                DB::table('aa_referrals')->insert([
+                    'referrer_id' => $referredBy,
+                    'referred_id' => $userId,
+                    'created_at' => now(),
+                ]);
+            }
+
             $user = DB::table('aa_users')->where('id', $userId)->first();
 
             DB::commit();
@@ -73,6 +112,7 @@ class AdeguatiAssettiAuthController extends Controller
                         'cognome' => $user->cognome,
                         'email' => $user->email,
                         'piano' => $user->piano,
+                        'referral_code' => $user->referral_code,
                     ]
                 ]
             ]);
