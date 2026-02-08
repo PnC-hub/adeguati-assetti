@@ -361,9 +361,18 @@ class AziendeClienteController extends Controller
         $token = $request->bearerToken();
         if (!$token) return null;
 
-        return DB::table('aa_users')
-            ->where('remember_token', $token)
+        // Look up hashed token in aa_tokens table
+        $tokenRecord = DB::table('aa_tokens')
+            ->where('token', hash('sha256', $token))
+            ->where(function($q) {
+                $q->whereNull('expires_at')
+                   ->orWhere('expires_at', '>', now());
+            })
             ->first();
+
+        if (!$tokenRecord) return null;
+
+        return DB::table('aa_users')->where('id', $tokenRecord->user_id)->first();
     }
 
     private function canAccessAzienda($user, $aziendaId)

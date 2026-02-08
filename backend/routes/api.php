@@ -74,7 +74,7 @@ Route::prefix('aziende-cliente')->group(function () {
 // Inviti Cliente routes (consulente invites clients for readonly access)
 Route::prefix('inviti')->group(function () {
     Route::get('/', [InvitiController::class, 'index']);
-    Route::post('/', [InvitiController::class, 'store']);
+    Route::post('/{aziendaId}', [InvitiController::class, 'store']);
     Route::delete('/{id}', [InvitiController::class, 'destroy']);
 });
 
