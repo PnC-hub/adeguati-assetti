@@ -184,7 +184,7 @@ const verifyToken = async () => {
   const token = route.params.token as string
 
   try {
-    const response = await $fetch<{ success: boolean; data: any; message?: string }>(`${config.public.apiBase}/inviti/verify/${token}`, {
+    const response = await $fetch<{ success: boolean; data: any; message?: string }>(`${config.public.apiBase}/invite/${token}`, {
       headers: {
         'X-API-Key': config.public.apiKey
       }
@@ -218,7 +218,7 @@ const acceptInvite = async () => {
   const token = route.params.token as string
 
   try {
-    const response = await $fetch<{ success: boolean; data: any }>(`${config.public.apiBase}/inviti/accept/${token}`, {
+    const response = await $fetch<{ success: boolean; data: any }>(`${config.public.apiBase}/invite/${token}/accept`, {
       method: 'POST',
       headers: {
         'X-API-Key': config.public.apiKey,

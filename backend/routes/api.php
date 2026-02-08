@@ -53,6 +53,9 @@ Route::prefix('studio')->group(function () {
     Route::get('/', [StudioController::class, 'show']);
     Route::put('/', [StudioController::class, 'update']);
     Route::get('/stats', [StudioController::class, 'stats']);
+    Route::post('/logo', [StudioController::class, 'uploadLogo']);
+    Route::post('/regenerate-api-key', [StudioController::class, 'regenerateApiKey']);
+    Route::delete('/delete-all-data', [StudioController::class, 'deleteAllData']);
 });
 
 // Aziende Cliente routes (consulente manages client companies)

@@ -38,13 +38,25 @@ class StudioController extends Controller
 
         $validated = $request->validate([
             'nome' => 'sometimes|string|max:255',
-            'p_iva' => 'nullable|string|max:20',
+            'partita_iva' => 'nullable|string|max:20',
+            'codice_fiscale' => 'nullable|string|max:20',
             'indirizzo' => 'nullable|string',
             'telefono' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:255',
+            'sito_web' => 'nullable|url|max:255',
             'logo_url' => 'nullable|string|max:500',
             'colore_primario' => 'nullable|string|max:7',
+            'notifica_kpi_critico' => 'nullable|boolean',
+            'notifica_report_settimanale' => 'nullable|boolean',
+            'notifica_invito_accettato' => 'nullable|boolean',
+            'notifica_scadenze' => 'nullable|boolean',
         ]);
+
+        // Map frontend field name to DB field name
+        if (isset($validated['partita_iva'])) {
+            $validated['p_iva'] = $validated['partita_iva'];
+            unset($validated['partita_iva']);
+        }
 
         $validated['updated_at'] = now();
 
@@ -120,6 +132,109 @@ class StudioController extends Controller
         return DB::table('aa_users')
             ->where('remember_token', $token)
             ->first();
+    }
+
+    /**
+     * Upload studio logo
+     */
+    public function uploadLogo(Request $request)
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user || $user->tipo_utente !== 'consulente') {
+            return response()->json(['success' => false, 'message' => 'Accesso negato'], 403);
+        }
+
+        $request->validate([
+            'logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024'
+        ]);
+
+        $studio = DB::table('aa_studi')->where('user_id', $user->id)->first();
+        if (!$studio) {
+            return response()->json(['success' => false, 'message' => 'Studio non trovato'], 404);
+        }
+
+        $file = $request->file('logo');
+        $filename = 'studio_' . $studio->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('logos', $filename, 'public');
+
+        $url = '/storage/' . $path;
+
+        DB::table('aa_studi')
+            ->where('id', $studio->id)
+            ->update(['logo_url' => $url, 'updated_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['url' => $url]
+        ]);
+    }
+
+    /**
+     * Regenerate API key for studio
+     */
+    public function regenerateApiKey(Request $request)
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user || $user->tipo_utente !== 'consulente') {
+            return response()->json(['success' => false, 'message' => 'Accesso negato'], 403);
+        }
+
+        $studio = DB::table('aa_studi')->where('user_id', $user->id)->first();
+        if (!$studio) {
+            return response()->json(['success' => false, 'message' => 'Studio non trovato'], 404);
+        }
+
+        $newApiKey = 'aa_sk_' . bin2hex(random_bytes(24));
+
+        DB::table('aa_studi')
+            ->where('id', $studio->id)
+            ->update(['api_key' => $newApiKey, 'updated_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['api_key' => $newApiKey]
+        ]);
+    }
+
+    /**
+     * Delete all data for studio (danger zone)
+     */
+    public function deleteAllData(Request $request)
+    {
+        $user = $this->getAuthUser($request);
+        if (!$user || $user->tipo_utente !== 'consulente') {
+            return response()->json(['success' => false, 'message' => 'Accesso negato'], 403);
+        }
+
+        $studio = DB::table('aa_studi')->where('user_id', $user->id)->first();
+        if (!$studio) {
+            return response()->json(['success' => false, 'message' => 'Studio non trovato'], 404);
+        }
+
+        // Get all aziende cliente for this studio
+        $aziendeIds = DB::table('aa_aziende_cliente')
+            ->where('studio_id', $studio->id)
+            ->pluck('id');
+
+        // Delete dati economici
+        DB::table('aa_dati_economici_cliente')
+            ->whereIn('azienda_cliente_id', $aziendeIds)
+            ->delete();
+
+        // Delete inviti
+        DB::table('aa_inviti_cliente')
+            ->whereIn('azienda_cliente_id', $aziendeIds)
+            ->delete();
+
+        // Delete aziende cliente
+        DB::table('aa_aziende_cliente')
+            ->where('studio_id', $studio->id)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tutti i dati sono stati eliminati'
+        ]);
     }
 
     private function calcolaKpiAzienda($aziendaId)
