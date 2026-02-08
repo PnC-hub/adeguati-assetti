@@ -86,6 +86,7 @@ class InvitiController extends Controller
             'email' => $validated['email'],
             'token' => $token,
             'stato' => 'pending',
+            'scade_at' => now()->addDays(7),
             'created_at' => now(),
         ]);
 
