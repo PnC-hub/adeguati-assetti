@@ -6,10 +6,15 @@
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
           <Icon name="heroicons:clipboard-document-check" class="w-6 h-6 text-white" />
         </div>
-        <div>
+        <div class="flex-1">
           <h1 class="text-2xl font-bold text-gray-800">Checklist Compliance Art. 2086 c.c.</h1>
           <p class="text-gray-500">Verifica la conformita degli assetti organizzativi, amministrativi e contabili</p>
         </div>
+        <PageInfoButton
+          title="Checklist Art. 2086"
+          description="Checklist di compliance basata sui criteri di ispezione giudiziaria Art. 2086 c.c."
+          :features="['15 item in 3 categorie: organizzativo, amministrativo, contabile', 'Score conformità con barra colore', 'Basata su criteri reali dei Tribunali']"
+        />
       </div>
     </div>
 

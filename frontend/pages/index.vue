@@ -18,7 +18,7 @@
           <div class="flex items-center gap-4">
             <NuxtLink to="/login" class="text-white/80 hover:text-white">Accedi</NuxtLink>
             <NuxtLink to="/register" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50">
-              Prova Gratis
+              Registrati Gratis
             </NuxtLink>
           </div>
         </div>
@@ -40,7 +40,7 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4">
               <NuxtLink to="/register" class="bg-white text-blue-600 px-8 py-4 rounded-lg font-bold hover:bg-blue-50 transition text-center">
-                Inizia Gratis
+                Registrati Gratis
               </NuxtLink>
               <button @click="showDemo = true" class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white/10 transition">
                 Guarda Demo Live
@@ -528,7 +528,7 @@
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <NuxtLink to="/register" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 transition">
-            Crea Account Gratuito
+            Registrati Gratis
           </NuxtLink>
           <button @click="showDemo = true" class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold hover:bg-white/10 transition">
             Accedi alla Demo
@@ -581,7 +581,7 @@
           </ul>
 
           <NuxtLink to="/register" class="block w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 transition text-lg">
-            Crea Account Gratuito
+            Registrati Gratis
           </NuxtLink>
 
           <p class="text-gray-500 text-sm mt-4">Nessuna carta di credito richiesta</p>

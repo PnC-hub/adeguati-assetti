@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+  <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg">
     <!-- Referral Banner -->
     <div v-if="referralCode" class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
       <div class="flex items-center gap-2 text-green-700">
@@ -12,11 +12,80 @@
       <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
         <Icon name="heroicons:chart-bar" class="w-7 h-7 text-white" />
       </div>
-      <h1 class="text-2xl font-bold text-gray-900">Crea il tuo account</h1>
-      <p class="text-gray-600 mt-1">Gratis per sempre, nessuna carta richiesta</p>
+      <h1 class="text-2xl font-bold text-gray-900">Registrati Gratis</h1>
+      <p class="text-gray-600 mt-1">Nessuna carta richiesta</p>
     </div>
 
-    <form @submit.prevent="handleRegister" class="space-y-4">
+    <!-- Step 1: User Type Selection -->
+    <div v-if="step === 1" class="space-y-4">
+      <p class="text-center text-gray-700 font-medium mb-4">Chi sei?</p>
+
+      <button
+        @click="selectUserType('imprenditore')"
+        class="w-full p-4 border-2 rounded-xl text-left hover:border-blue-500 hover:bg-blue-50 transition-all"
+        :class="{ 'border-blue-500 bg-blue-50': form.tipo_utente === 'imprenditore', 'border-gray-200': form.tipo_utente !== 'imprenditore' }"
+      >
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Icon name="heroicons:building-office-2" class="w-6 h-6 text-blue-600" />
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">Imprenditore</h3>
+            <p class="text-sm text-gray-600">Gestisco la mia azienda</p>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center gap-2 text-sm text-green-600">
+          <Icon name="heroicons:check-circle" class="w-4 h-4" />
+          <span>Gratis per sempre</span>
+        </div>
+      </button>
+
+      <button
+        @click="selectUserType('consulente')"
+        class="w-full p-4 border-2 rounded-xl text-left hover:border-purple-500 hover:bg-purple-50 transition-all"
+        :class="{ 'border-purple-500 bg-purple-50': form.tipo_utente === 'consulente', 'border-gray-200': form.tipo_utente !== 'consulente' }"
+      >
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <Icon name="heroicons:user-group" class="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">Commercialista / Consulente</h3>
+            <p class="text-sm text-gray-600">Gestisco più clienti</p>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center gap-2 text-sm text-purple-600">
+          <Icon name="heroicons:sparkles" class="w-4 h-4" />
+          <span>30 giorni di prova Business</span>
+        </div>
+      </button>
+
+      <button
+        @click="goToStep2"
+        :disabled="!form.tipo_utente"
+        class="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Continua
+      </button>
+    </div>
+
+    <!-- Step 2: Registration Form -->
+    <form v-else @submit.prevent="handleRegister" class="space-y-4">
+      <button type="button" @click="step = 1" class="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm mb-4">
+        <Icon name="heroicons:arrow-left" class="w-4 h-4" />
+        Torna indietro
+      </button>
+
+      <!-- User type badge -->
+      <div class="flex justify-center mb-4">
+        <span
+          class="px-4 py-2 rounded-full text-sm font-medium"
+          :class="form.tipo_utente === 'consulente' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
+        >
+          {{ form.tipo_utente === 'consulente' ? '👔 Consulente' : '🏢 Imprenditore' }}
+        </span>
+      </div>
+
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
@@ -40,7 +109,8 @@
         </div>
       </div>
 
-      <div>
+      <!-- Imprenditore: Azienda -->
+      <div v-if="form.tipo_utente === 'imprenditore'">
         <label class="block text-sm font-medium text-gray-700 mb-1">Nome Azienda</label>
         <input
           v-model="form.azienda"
@@ -51,6 +121,29 @@
         />
       </div>
 
+      <!-- Consulente: Studio -->
+      <div v-else class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nome Studio</label>
+          <input
+            v-model="form.studio_nome"
+            type="text"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            placeholder="Studio Rossi & Associati"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">P.IVA Studio (opzionale)</label>
+          <input
+            v-model="form.studio_p_iva"
+            type="text"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            placeholder="12345678901"
+          />
+        </div>
+      </div>
+
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
@@ -58,7 +151,7 @@
           type="email"
           required
           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="mario@rossi-srl.it"
+          placeholder="mario@studio.it"
         />
       </div>
 
@@ -99,11 +192,17 @@
       <button
         type="submit"
         :disabled="loading"
-        class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        :class="form.tipo_utente === 'consulente' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-blue-600 text-white hover:bg-blue-700'"
       >
         <span v-if="loading">Registrazione in corso...</span>
-        <span v-else>Crea Account Gratuito</span>
+        <span v-else>{{ form.tipo_utente === 'consulente' ? 'Inizia Prova Gratuita' : 'Registrati Gratis' }}</span>
       </button>
+
+      <!-- Trial info for consulente -->
+      <p v-if="form.tipo_utente === 'consulente'" class="text-center text-sm text-gray-500">
+        30 giorni gratis, poi €79/mese per il piano Business
+      </p>
     </form>
 
     <p class="text-center text-gray-600 mt-6">
@@ -124,15 +223,19 @@ const router = useRouter()
 const route = useRoute()
 const config = useRuntimeConfig()
 
-// Legge il codice referral dall'URL (?ref=XXXXXXXX)
+const step = ref(1)
+
 const referralCode = computed(() => {
   return (route.query.ref as string) || ''
 })
 
 const form = reactive({
+  tipo_utente: '' as 'imprenditore' | 'consulente' | '',
   nome: '',
   cognome: '',
   azienda: '',
+  studio_nome: '',
+  studio_p_iva: '',
   email: '',
   password: '',
   password_confirmation: '',
@@ -141,6 +244,16 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+
+const selectUserType = (type: 'imprenditore' | 'consulente') => {
+  form.tipo_utente = type
+}
+
+const goToStep2 = () => {
+  if (form.tipo_utente) {
+    step.value = 2
+  }
+}
 
 const handleRegister = async () => {
   if (form.password !== form.password_confirmation) {
@@ -152,21 +265,29 @@ const handleRegister = async () => {
   error.value = ''
 
   try {
-    // Prepara i parametri includendo il referral code se presente
     const params: Record<string, string> = {
+      tipo_utente: form.tipo_utente,
       nome: form.nome,
       cognome: form.cognome,
-      azienda: form.azienda,
       email: form.email,
       password: form.password,
       password_confirmation: form.password_confirmation
+    }
+
+    if (form.tipo_utente === 'imprenditore') {
+      params.azienda = form.azienda
+    } else {
+      params.studio_nome = form.studio_nome
+      if (form.studio_p_iva) {
+        params.studio_p_iva = form.studio_p_iva
+      }
     }
 
     if (referralCode.value) {
       params.referral_code = referralCode.value
     }
 
-    const response = await $fetch<{ success: boolean; data: { token: string; user: any }; message?: string }>(
+    const response = await $fetch<{ success: boolean; data: { token: string; user: any; studio_id?: number }; message?: string }>(
       `${config.public.apiBase}/auth/register`,
       {
         method: 'POST',
@@ -182,7 +303,13 @@ const handleRegister = async () => {
     if (response.success) {
       localStorage.setItem('aa_token', response.data.token)
       localStorage.setItem('aa_user', JSON.stringify(response.data.user))
-      router.push('/dashboard')
+
+      // Redirect based on user type
+      if (response.data.user.tipo_utente === 'consulente') {
+        router.push('/consulente')
+      } else {
+        router.push('/dashboard')
+      }
     } else {
       error.value = response.message || 'Errore durante la registrazione'
     }

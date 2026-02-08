@@ -14,6 +14,11 @@
             {{ periodoLabel }}
           </p>
         </div>
+        <PageInfoButton
+          title="Dashboard KPI"
+          description="Monitoraggio dei 7 indicatori CNDCEC obbligatori e KPI settoriali per codice ATECO"
+          :features="['7 KPI obbligatori: liquidità, solidità, redditività, DSCR, etc.', 'KPI settoriali basati su codice ATECO', 'Score conformità con semafori automatici']"
+        />
       </div>
 
       <!-- Selettore Azienda (solo se più di una) -->

@@ -6,10 +6,15 @@
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
           <Icon name="heroicons:user-circle" class="w-6 h-6 text-white" />
         </div>
-        <div>
+        <div class="flex-1">
           <h1 class="text-2xl font-bold text-gray-800">Il mio Account</h1>
           <p class="text-gray-500">Gestisci profilo e abbonamento</p>
         </div>
+        <PageInfoButton
+          title="Account"
+          description="Gestione del profilo utente, piano attuale e opzioni di upgrade"
+          :features="['Profilo con dati personali', 'Piano attuale con features incluse', 'Upgrade a Pro o Studio con trial 14 giorni']"
+        />
       </div>
     </div>
 
@@ -240,14 +245,15 @@ const loadAccount = async () => {
   }
 }
 
-const handleUpgrade = async (piano: string) => {
+const handleUpgrade = async (piano: string, billing: string = 'monthly') => {
   try {
+    upgradeMessage.value = ''
     const response = await $fetch<{ success: boolean; data: any }>(
       `${config.public.apiBase}/upgrade`,
       {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: { piano }
+        body: { piano, billing }
       }
     )
     if (response.success && response.data) {

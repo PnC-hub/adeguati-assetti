@@ -13,6 +13,11 @@
           <h1 class="text-2xl font-bold text-gray-800">Inserimento Dati Economici</h1>
           <p class="text-gray-500">Dati per il calcolo degli indicatori di salute aziendale</p>
         </div>
+        <PageInfoButton
+          title="Inserimento Dati"
+          description="Form per inserire i dati economici mensili necessari al calcolo degli indicatori"
+          :features="['5 sezioni: patrimonio, debiti, conto economico, crediti, dati operativi', 'Selezione periodo mese/anno', 'Auto-save e ricalcolo KPI automatico']"
+        />
       </div>
       <!-- Settore ATECO -->
       <div v-if="aziendaNome" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 flex items-center justify-between">

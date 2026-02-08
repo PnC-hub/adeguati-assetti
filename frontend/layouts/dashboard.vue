@@ -117,6 +117,9 @@
         <slot />
       </main>
     </div>
+
+    <!-- Floating Ticket Button -->
+    <TicketButton />
   </div>
 </template>
 

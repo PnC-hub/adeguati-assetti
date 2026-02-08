@@ -1242,4 +1242,51 @@ class AdeguatiAssettiStandaloneController extends Controller
         ];
         return $azioni[$codice] ?? 'Monitorare e analizzare le cause';
     }
+
+    /**
+     * Submit a support ticket for bug reports
+     */
+    public function submitTicket(Request $request)
+    {
+        $validated = $request->validate([
+            'tipo' => 'required|string|max:50',
+            'pagina' => 'nullable|string|max:255',
+            'descrizione' => 'required|string|max:5000',
+            'email_risposta' => 'nullable|email|max:255',
+            'user_id' => 'nullable|integer',
+            'user_email' => 'nullable|email|max:255',
+            'user_agent' => 'nullable|string|max:500',
+            'timestamp' => 'nullable|string',
+        ]);
+
+        try {
+            // Save ticket to database
+            $ticketId = DB::table('aa_tickets')->insertGetId([
+                'tipo' => $validated['tipo'],
+                'pagina' => $validated['pagina'] ?? null,
+                'descrizione' => $validated['descrizione'],
+                'email_risposta' => $validated['email_risposta'] ?? null,
+                'user_id' => $validated['user_id'] ?? null,
+                'user_email' => $validated['user_email'] ?? null,
+                'user_agent' => $validated['user_agent'] ?? null,
+                'stato' => 'aperto',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ticket creato con successo',
+                'ticket_id' => $ticketId
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Ticket submission failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Errore durante la creazione del ticket'
+            ], 500);
+        }
+    }
 }
