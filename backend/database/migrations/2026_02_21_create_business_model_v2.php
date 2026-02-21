@@ -91,10 +91,16 @@ return new class extends Migration
         }
 
         // 5. Aggiorna piani: disattiva vecchi, inserisci nuovi
-        // Aggiungi colonna 'attivo' e 'target' se non esistono
+        // Aggiungi colonna 'attivo' se non esiste
         if (!Schema::hasColumn('aa_piani', 'attivo')) {
             Schema::table('aa_piani', function (Blueprint $table) {
                 $table->boolean('attivo')->default(true)->after('features');
+            });
+        }
+
+        // Aggiungi colonna 'target' se non esiste (check separato da 'attivo')
+        if (!Schema::hasColumn('aa_piani', 'target')) {
+            Schema::table('aa_piani', function (Blueprint $table) {
                 $table->string('target', 50)->nullable()->after('attivo');
             });
         }
@@ -108,7 +114,6 @@ return new class extends Migration
                 'codice' => 'impresa49',
                 'nome' => 'Impresa',
                 'prezzo_mensile' => 49,
-                'prezzo_annuale' => 490,
                 'max_aziende' => 1,
                 'features' => json_encode([
                     '7_kpi' => true,
@@ -131,7 +136,6 @@ return new class extends Migration
                 'codice' => 'commercialista_free',
                 'nome' => 'Commercialista',
                 'prezzo_mensile' => 0,
-                'prezzo_annuale' => 0,
                 'max_aziende' => -1, // illimitato (vede i clienti linkati)
                 'features' => json_encode([
                     'dashboard_aggregata' => true,
