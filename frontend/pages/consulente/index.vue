@@ -82,15 +82,15 @@
         </NuxtLink>
 
         <NuxtLink
-          to="/consulente/report"
-          class="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-purple-500 hover:bg-purple-50 transition-all"
+          to="/consulente/crediti"
+          class="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-gray-200 hover:border-green-500 hover:bg-green-50 transition-all"
         >
           <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-            <Icon name="heroicons:document-arrow-down" class="w-5 h-5 text-green-600" />
+            <Icon name="heroicons:banknotes" class="w-5 h-5 text-green-600" />
           </div>
           <div>
-            <div class="font-medium text-gray-900">Genera Report</div>
-            <div class="text-sm text-gray-500">Export PDF/Excel</div>
+            <div class="font-medium text-gray-900">Crediti & Guadagni</div>
+            <div class="text-sm text-gray-500">20% su ogni cliente pagante</div>
           </div>
         </NuxtLink>
       </div>
@@ -227,8 +227,8 @@ const loadData = async () => {
         })
     }
 
-    // Load pending invites
-    const invitiRes = await $fetch<{ success: boolean; data: any[] }>(`${config.public.apiBase}/inviti`, {
+    // Load pending invites (v2)
+    const invitiRes = await $fetch<{ success: boolean; data: any[] }>(`${config.public.apiBase}/inviti-v2`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'X-API-Key': config.public.apiKey
@@ -236,7 +236,10 @@ const loadData = async () => {
     })
 
     if (invitiRes.success) {
-      invitiPendenti.value = invitiRes.data.filter((i: any) => i.stato === 'pending').slice(0, 3)
+      invitiPendenti.value = invitiRes.data
+        .filter((i: any) => i.stato === 'pending')
+        .slice(0, 3)
+        .map((i: any) => ({ ...i, email: i.recipient_email || i.email }))
     }
   } catch (e) {
     console.error('Error loading dashboard data:', e)

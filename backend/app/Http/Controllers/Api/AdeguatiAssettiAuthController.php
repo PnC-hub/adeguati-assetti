@@ -27,6 +27,7 @@ class AdeguatiAssettiAuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'tipo_utente' => 'nullable|in:imprenditore,consulente',
             'referral_code' => 'nullable|string|max:20',
+            'invite_token' => 'nullable|string|max:64',
         ];
 
         // Imprenditore needs azienda, Consulente needs studio
@@ -57,9 +58,20 @@ class AdeguatiAssettiAuthController extends Controller
             }
 
             // Determine starting plan based on user type
-            // Imprenditore: free, Consulente: business (30-day trial)
-            $piano = $tipoUtente === 'consulente' ? 'business' : 'free';
-            $trialEndsAt = $tipoUtente === 'consulente' ? now()->addDays(30) : null;
+            // Imprenditore: free (upgrade to impresa49 via Stripe)
+            // Consulente (commercialista): commercialista_free (always free, earns 20% revenue share)
+            $piano = $tipoUtente === 'consulente' ? 'commercialista_free' : 'free';
+            $trialEndsAt = null; // No trial needed anymore
+
+            // Check if registering via invite token
+            $inviteRecord = null;
+            if ($request->invite_token) {
+                $inviteRecord = DB::table('aa_inviti_bidirezionali')
+                    ->where('token', $request->invite_token)
+                    ->where('stato', 'pending')
+                    ->where('scade_at', '>', now())
+                    ->first();
+            }
 
             // Create user
             $userId = DB::table('aa_users')->insertGetId([
@@ -137,6 +149,42 @@ class AdeguatiAssettiAuthController extends Controller
                 ]);
             }
 
+            // If registering via invite, create the client-commercialista link
+            if ($inviteRecord) {
+                if ($inviteRecord->tipo === 'commercialista_to_client' && $tipoUtente === 'imprenditore') {
+                    // Commercialista invited this client → link client to commercialista
+                    DB::table('aa_client_commercialista')->insert([
+                        'client_user_id' => $userId,
+                        'commercialista_user_id' => $inviteRecord->sender_user_id,
+                        'azienda_id' => $aziendaId,
+                        'stato' => 'active',
+                        'invited_by' => 'commercialista',
+                        'linked_at' => now(),
+                        'created_at' => now(),
+                    ]);
+                } elseif ($inviteRecord->tipo === 'client_to_commercialista' && $tipoUtente === 'consulente') {
+                    // Client invited this commercialista → link commercialista to client
+                    DB::table('aa_client_commercialista')->insert([
+                        'client_user_id' => $inviteRecord->sender_user_id,
+                        'commercialista_user_id' => $userId,
+                        'azienda_id' => $inviteRecord->azienda_id,
+                        'stato' => 'active',
+                        'invited_by' => 'client',
+                        'linked_at' => now(),
+                        'created_at' => now(),
+                    ]);
+                }
+
+                // Mark invite as accepted
+                DB::table('aa_inviti_bidirezionali')
+                    ->where('id', $inviteRecord->id)
+                    ->update([
+                        'stato' => 'accepted',
+                        'recipient_user_id' => $userId,
+                        'accepted_at' => now(),
+                    ]);
+            }
+
             $user = DB::table('aa_users')->where('id', $userId)->first();
 
             DB::commit();
@@ -194,19 +242,8 @@ class AdeguatiAssettiAuthController extends Controller
             ], 401);
         }
 
-        // Check if consulente trial has expired and account is frozen
         $tipoUtente = $user->tipo_utente ?? 'imprenditore';
-        if ($tipoUtente === 'consulente' && $user->trial_ends_at && now()->greaterThan($user->trial_ends_at)) {
-            // Check if they have an active subscription
-            if (!$user->stripe_subscription_id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Il tuo periodo di prova è scaduto. Effettua l\'upgrade per continuare.',
-                    'trial_expired' => true,
-                    'upgrade_required' => true
-                ], 403);
-            }
-        }
+        // Note: consulenti (commercialisti) are now free, no trial block needed
 
         // Generate new token
         $token = Str::random(64);
@@ -322,20 +359,48 @@ class AdeguatiAssettiAuthController extends Controller
         // Add context based on user type
         if ($tipoUtente === 'consulente') {
             $studio = DB::table('aa_studi')->where('user_id', $user->id)->first();
+            $responseData['studio'] = $studio;
+
+            // Get linked clients (new business model v2)
+            $clientiLinkati = DB::table('aa_client_commercialista as cc')
+                ->join('aa_users as u', 'u.id', '=', 'cc.client_user_id')
+                ->join('aa_aziende as a', 'a.id', '=', 'cc.azienda_id')
+                ->where('cc.commercialista_user_id', $user->id)
+                ->where('cc.stato', 'active')
+                ->select('cc.id as link_id', 'u.id as client_id', 'u.nome', 'u.cognome', 'u.email',
+                         'u.piano as client_piano', 'a.id as azienda_id', 'a.nome as azienda_nome',
+                         'cc.linked_at')
+                ->get();
+            $responseData['clienti_linkati'] = $clientiLinkati;
+
+            // Legacy: also include aziende_cliente for backward compat
             $aziendeCliente = DB::table('aa_aziende_cliente')
                 ->where('studio_id', $studio->id ?? 0)
                 ->where('attiva', true)
                 ->get();
-            $responseData['studio'] = $studio;
             $responseData['aziende_cliente'] = $aziendeCliente;
-            $responseData['max_aziende'] = $piano->max_aziende ?? 0;
 
-            // Check trial status
-            if ($user->trial_ends_at) {
-                $responseData['trial_active'] = now()->lessThan($user->trial_ends_at);
-                $responseData['trial_days_left'] = max(0, now()->diffInDays($user->trial_ends_at, false));
-            }
+            // Credit summary
+            $creditiMeseCorrente = DB::table('aa_crediti_commercialista')
+                ->where('commercialista_user_id', $user->id)
+                ->where('credito_valido', true)
+                ->sum('importo_credito');
+            $creditiPending = DB::table('aa_crediti_commercialista')
+                ->where('commercialista_user_id', $user->id)
+                ->where('credito_valido', true)
+                ->whereIn('stato', ['calcolato', 'confermato'])
+                ->sum('importo_credito');
+            $creditiPagati = DB::table('aa_crediti_commercialista')
+                ->where('commercialista_user_id', $user->id)
+                ->where('stato', 'pagato')
+                ->sum('importo_credito');
+            $responseData['crediti'] = [
+                'totale' => $creditiMeseCorrente,
+                'pending' => $creditiPending,
+                'pagati' => $creditiPagati,
+            ];
         } elseif ($tipoUtente === 'cliente_readonly') {
+            // Legacy cliente_readonly
             $aziendaCliente = DB::table('aa_aziende_cliente')
                 ->where('id', $user->azienda_cliente_id)
                 ->first();
@@ -344,6 +409,15 @@ class AdeguatiAssettiAuthController extends Controller
             // imprenditore
             $aziende = DB::table('aa_aziende')->where('user_id', $user->id)->get();
             $responseData['aziende'] = $aziende;
+
+            // Check if linked to a commercialista
+            $linkComm = DB::table('aa_client_commercialista as cc')
+                ->join('aa_users as u', 'u.id', '=', 'cc.commercialista_user_id')
+                ->where('cc.client_user_id', $user->id)
+                ->where('cc.stato', 'active')
+                ->select('u.id as commercialista_id', 'u.nome', 'u.cognome', 'u.email')
+                ->first();
+            $responseData['commercialista'] = $linkComm;
         }
 
         return response()->json([

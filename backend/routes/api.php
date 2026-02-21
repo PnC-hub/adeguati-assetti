@@ -6,6 +6,9 @@ use App\Http\Controllers\Api\AdeguatiAssettiStandaloneController;
 use App\Http\Controllers\Api\StudioController;
 use App\Http\Controllers\Api\AziendeClienteController;
 use App\Http\Controllers\Api\InvitiController;
+use App\Http\Controllers\Api\InvitiBidirezionaliController;
+use App\Http\Controllers\Api\CommercialistaClientiController;
+use App\Http\Controllers\Api\CreditiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +81,42 @@ Route::prefix('inviti')->group(function () {
     Route::delete('/{id}', [InvitiController::class, 'destroy']);
 });
 
-// Public invite routes (no auth required)
+// Public invite routes (no auth required) - Legacy v1
 Route::get('/invite/{token}', [InvitiController::class, 'info']);
 Route::post('/invite/{token}/accept', [InvitiController::class, 'accept']);
+
+/*
+|--------------------------------------------------------------------------
+| API Routes - Business Model V2 (bidirectional invites + revenue share)
+|--------------------------------------------------------------------------
+*/
+
+// Bidirectional invites (authenticated)
+Route::prefix('inviti-v2')->group(function () {
+    Route::get('/', [InvitiBidirezionaliController::class, 'index']);
+    Route::post('/', [InvitiBidirezionaliController::class, 'store']);
+    Route::get('/ricevuti', [InvitiBidirezionaliController::class, 'ricevuti']);
+    Route::delete('/{id}', [InvitiBidirezionaliController::class, 'destroy']);
+});
+
+// Public invite routes v2 (no auth required)
+Route::get('/invite-v2/{token}', [InvitiBidirezionaliController::class, 'info']);
+Route::post('/invite-v2/{token}/accept', [InvitiBidirezionaliController::class, 'accept']);
+
+// Commercialista: client view + aggregated dashboard
+Route::prefix('commercialista')->group(function () {
+    Route::get('/clienti', [CommercialistaClientiController::class, 'index']);
+    Route::get('/clienti/{aziendaId}/dashboard', [CommercialistaClientiController::class, 'clientDashboard']);
+    Route::get('/clienti/{aziendaId}/dati/{anno}/{mese}', [CommercialistaClientiController::class, 'clientDati']);
+    Route::get('/dashboard-aggregata', [CommercialistaClientiController::class, 'dashboardAggregata']);
+    Route::delete('/link/{id}', [CommercialistaClientiController::class, 'terminateLink']);
+
+    // Revenue share credits
+    Route::get('/crediti', [CreditiController::class, 'index']);
+    Route::get('/crediti/riepilogo', [CreditiController::class, 'riepilogo']);
+    Route::get('/crediti/{anno}/{mese}', [CreditiController::class, 'perMese']);
+});
+
+// Client: my linked commercialisti
+Route::get('/miei-commercialisti', [CommercialistaClientiController::class, 'mieiCommercialisti']);
+Route::delete('/link/{id}', [CommercialistaClientiController::class, 'terminateLink']);

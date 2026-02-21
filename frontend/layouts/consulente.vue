@@ -16,8 +16,8 @@
       <div class="p-4 border-b border-purple-800">
         <div class="text-xs text-purple-300 mb-1">Studio</div>
         <div class="text-white font-medium truncate">{{ studio?.nome || 'Il mio studio' }}</div>
-        <div v-if="trialDaysLeft !== null && trialDaysLeft > 0" class="mt-2">
-          <div class="text-xs text-amber-300">⏱️ Trial: {{ trialDaysLeft }} giorni rimasti</div>
+        <div class="mt-2">
+          <div class="text-xs text-green-300">Accesso gratuito</div>
         </div>
       </div>
 
@@ -90,34 +90,6 @@
 
       <!-- Page Content -->
       <main class="flex-1 p-6 overflow-auto">
-        <!-- Trial Warning -->
-        <div v-if="trialDaysLeft !== null && trialDaysLeft <= 7 && trialDaysLeft > 0" class="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <Icon name="heroicons:exclamation-triangle" class="w-6 h-6 text-amber-600" />
-            <div>
-              <div class="font-medium text-amber-800">Il tuo periodo di prova sta per scadere</div>
-              <div class="text-sm text-amber-600">Hai ancora {{ trialDaysLeft }} giorni. Effettua l'upgrade per continuare ad usare tutte le funzionalità.</div>
-            </div>
-          </div>
-          <NuxtLink to="/consulente/account" class="bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amber-700">
-            Upgrade
-          </NuxtLink>
-        </div>
-
-        <!-- Trial Expired -->
-        <div v-else-if="trialDaysLeft !== null && trialDaysLeft <= 0" class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <Icon name="heroicons:x-circle" class="w-6 h-6 text-red-600" />
-            <div>
-              <div class="font-medium text-red-800">Il tuo periodo di prova è scaduto</div>
-              <div class="text-sm text-red-600">Effettua l'upgrade per sbloccare tutte le funzionalità e continuare a gestire i tuoi clienti.</div>
-            </div>
-          </div>
-          <NuxtLink to="/consulente/account" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700">
-            Upgrade Ora
-          </NuxtLink>
-        </div>
-
         <slot />
       </main>
     </div>
@@ -141,6 +113,7 @@ const navigation = computed(() => [
   { label: 'Dashboard', icon: 'heroicons:home', to: '/consulente' },
   { label: 'Aziende Clienti', icon: 'heroicons:building-office-2', to: '/consulente/aziende', badge: stats.value.verdi + stats.value.gialli + stats.value.rossi || null },
   { label: 'Invita Clienti', icon: 'heroicons:envelope', to: '/consulente/inviti' },
+  { label: 'Crediti & Guadagni', icon: 'heroicons:banknotes', to: '/consulente/crediti' },
   { label: 'Report', icon: 'heroicons:document-chart-bar', to: '/consulente/report' },
   { label: 'Il Mio Studio', icon: 'heroicons:cog-6-tooth', to: '/consulente/studio' },
   { label: 'Account', icon: 'heroicons:user-circle', to: '/consulente/account' },
@@ -151,6 +124,7 @@ const pageTitle = computed(() => {
     '/consulente': 'Dashboard Consulente',
     '/consulente/aziende': 'Aziende Clienti',
     '/consulente/inviti': 'Invita Clienti',
+    '/consulente/crediti': 'Crediti & Guadagni',
     '/consulente/report': 'Report',
     '/consulente/studio': 'Impostazioni Studio',
     '/consulente/account': 'Il Mio Account',

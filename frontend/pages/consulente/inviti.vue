@@ -4,7 +4,7 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Invita Clienti</h1>
-        <p class="text-gray-500 mt-1">Invia accessi readonly ai tuoi clienti</p>
+        <p class="text-gray-500 mt-1">Invia un link al cliente per collegarlo al tuo studio</p>
       </div>
       <button
         @click="showInviteModal = true"
@@ -112,9 +112,9 @@
                 <Icon :name="getStatoIcon(invito.stato)" class="w-5 h-5" />
               </div>
               <div>
-                <div class="font-medium text-gray-900">{{ invito.email }}</div>
+                <div class="font-medium text-gray-900">{{ invito.recipient_email || invito.email }}</div>
                 <div class="text-sm text-gray-500">
-                  {{ invito.azienda_nome }} • Inviato il {{ formatDate(invito.created_at) }}
+                  Inviato il {{ formatDate(invito.created_at) }}
                 </div>
               </div>
             </div>
@@ -171,20 +171,6 @@
 
         <form @submit.prevent="handleInvite" class="p-6 space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Azienda Cliente *</label>
-            <select
-              v-model="newInvite.azienda_cliente_id"
-              required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">Seleziona azienda</option>
-              <option v-for="azienda in aziende" :key="azienda.id" :value="azienda.id">
-                {{ azienda.nome }}
-              </option>
-            </select>
-          </div>
-
-          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email Cliente *</label>
             <input
               v-model="newInvite.email"
@@ -195,15 +181,15 @@
             />
           </div>
 
-          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <div class="flex gap-3">
-              <Icon name="heroicons:information-circle" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div class="text-sm text-blue-700">
-                <p class="font-medium mb-1">Cosa può fare il cliente?</p>
-                <ul class="list-disc list-inside space-y-1 text-blue-600">
-                  <li>Visualizzare la dashboard della propria azienda</li>
-                  <li>Vedere i KPI e gli indicatori di salute</li>
-                  <li>Scaricare report in PDF</li>
+              <Icon name="heroicons:information-circle" class="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div class="text-sm text-purple-700">
+                <p class="font-medium mb-1">Come funziona?</p>
+                <ul class="list-disc list-inside space-y-1 text-purple-600">
+                  <li>Il cliente riceve un link per registrarsi</li>
+                  <li>Una volta registrato, viene collegato al tuo studio</li>
+                  <li>Tu guadagni il 20% (&euro;9,80/mese) per ogni cliente pagante</li>
                 </ul>
               </div>
             </div>
@@ -284,7 +270,6 @@ definePageMeta({
 const config = useRuntimeConfig()
 
 const inviti = ref<any[]>([])
-const aziende = ref<any[]>([])
 const loading = ref(true)
 const searchQuery = ref('')
 const activeFilter = ref('all')
@@ -293,7 +278,6 @@ const showInviteModal = ref(false)
 const inviteLoading = ref(false)
 const inviteError = ref('')
 const newInvite = reactive({
-  azienda_cliente_id: '',
   email: ''
 })
 
@@ -323,8 +307,7 @@ const stats = computed(() => ({
 const filteredInviti = computed(() => {
   return inviti.value.filter(i => {
     const matchSearch = !searchQuery.value ||
-      i.email.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      i.azienda_nome?.toLowerCase().includes(searchQuery.value.toLowerCase())
+      (i.recipient_email || i.email || '').toLowerCase().includes(searchQuery.value.toLowerCase())
 
     const matchFilter = activeFilter.value === 'all' || i.stato === activeFilter.value
 
@@ -380,7 +363,7 @@ const showToast = (message: string, type: 'success' | 'error') => {
 }
 
 const copyInviteLink = async (invito: any) => {
-  const link = `${window.location.origin}/invite/${invito.token}`
+  const link = `${window.location.origin}/invite-v2/${invito.token}`
   try {
     await navigator.clipboard.writeText(link)
     showToast('Link copiato negli appunti', 'success')
@@ -407,20 +390,20 @@ const handleInvite = async () => {
   if (!token) return
 
   try {
-    const response = await $fetch<{ success: boolean; data: any; message?: string }>(`${config.public.apiBase}/inviti`, {
+    const response = await $fetch<{ success: boolean; data: any; message?: string }>(`${config.public.apiBase}/inviti-v2`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'X-API-Key': config.public.apiKey,
         'Content-Type': 'application/json'
       },
-      body: newInvite
+      body: { email: newInvite.email }
     })
 
     if (response.success) {
       inviti.value.unshift(response.data)
       showInviteModal.value = false
-      Object.assign(newInvite, { azienda_cliente_id: '', email: '' })
+      Object.assign(newInvite, { email: '' })
       showToast('Invito inviato con successo', 'success')
     } else {
       inviteError.value = response.message || 'Errore durante l\'invio'
@@ -440,7 +423,7 @@ const handleDelete = async () => {
   if (!token) return
 
   try {
-    await $fetch(`${config.public.apiBase}/inviti/${deleteTarget.value.id}`, {
+    await $fetch(`${config.public.apiBase}/inviti-v2/${deleteTarget.value.id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -464,23 +447,14 @@ const loadData = async () => {
   if (!token) return
 
   try {
-    const [invitiRes, aziendeRes] = await Promise.all([
-      $fetch<{ success: boolean; data: any[] }>(`${config.public.apiBase}/inviti`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-API-Key': config.public.apiKey
-        }
-      }),
-      $fetch<{ success: boolean; data: any[] }>(`${config.public.apiBase}/aziende-cliente`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-API-Key': config.public.apiKey
-        }
-      })
-    ])
+    const invitiRes = await $fetch<{ success: boolean; data: any[] }>(`${config.public.apiBase}/inviti-v2`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'X-API-Key': config.public.apiKey
+      }
+    })
 
     if (invitiRes.success) inviti.value = invitiRes.data
-    if (aziendeRes.success) aziende.value = aziendeRes.data
   } catch (e) {
     console.error('Error loading data:', e)
   } finally {

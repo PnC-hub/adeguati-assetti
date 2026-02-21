@@ -8,6 +8,14 @@
       </div>
     </div>
 
+    <!-- Invite Token Banner -->
+    <div v-if="inviteToken" class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-6">
+      <div class="flex items-center gap-2 text-purple-700">
+        <Icon name="heroicons:link" class="w-5 h-5" />
+        <span class="text-sm font-medium">Registrati per collegarti al tuo commercialista/cliente</span>
+      </div>
+    </div>
+
     <div class="text-center mb-8">
       <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
         <Icon name="heroicons:chart-bar" class="w-7 h-7 text-white" />
@@ -34,9 +42,9 @@
             <p class="text-sm text-gray-600">Gestisco la mia azienda</p>
           </div>
         </div>
-        <div class="mt-3 flex items-center gap-2 text-sm text-green-600">
+        <div class="mt-3 flex items-center gap-2 text-sm text-blue-600">
           <Icon name="heroicons:check-circle" class="w-4 h-4" />
-          <span>Gratis per sempre</span>
+          <span>Registrati gratis, poi &euro;49/mese</span>
         </div>
       </button>
 
@@ -51,12 +59,12 @@
           </div>
           <div>
             <h3 class="font-semibold text-gray-900">Commercialista / Consulente</h3>
-            <p class="text-sm text-gray-600">Gestisco più clienti</p>
+            <p class="text-sm text-gray-600">Gestisco i clienti e guadagno il 20%</p>
           </div>
         </div>
         <div class="mt-3 flex items-center gap-2 text-sm text-purple-600">
-          <Icon name="heroicons:sparkles" class="w-4 h-4" />
-          <span>30 giorni di prova Business</span>
+          <Icon name="heroicons:currency-euro" class="w-4 h-4" />
+          <span>Sempre gratuito - Guadagna il 20% sui tuoi clienti</span>
         </div>
       </button>
 
@@ -196,12 +204,15 @@
         :class="form.tipo_utente === 'consulente' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-blue-600 text-white hover:bg-blue-700'"
       >
         <span v-if="loading">Registrazione in corso...</span>
-        <span v-else>{{ form.tipo_utente === 'consulente' ? 'Inizia Prova Gratuita' : 'Registrati Gratis' }}</span>
+        <span v-else>{{ form.tipo_utente === 'consulente' ? 'Registrati Gratis' : 'Registrati Gratis' }}</span>
       </button>
 
-      <!-- Trial info for consulente -->
+      <!-- Info per tipo utente -->
       <p v-if="form.tipo_utente === 'consulente'" class="text-center text-sm text-gray-500">
-        30 giorni gratis, poi €79/mese per il piano Business
+        Sempre gratuito. Guadagna il 20% su ogni cliente pagante.
+      </p>
+      <p v-else-if="form.tipo_utente === 'imprenditore'" class="text-center text-sm text-gray-500">
+        Registrazione gratuita, poi €49/mese per tutte le funzionalità.
       </p>
     </form>
 
@@ -227,6 +238,10 @@ const step = ref(1)
 
 const referralCode = computed(() => {
   return (route.query.ref as string) || ''
+})
+
+const inviteToken = computed(() => {
+  return (route.query.invite_token as string) || ''
 })
 
 const form = reactive({
@@ -285,6 +300,10 @@ const handleRegister = async () => {
 
     if (referralCode.value) {
       params.referral_code = referralCode.value
+    }
+
+    if (inviteToken.value) {
+      params.invite_token = inviteToken.value
     }
 
     const response = await $fetch<{ success: boolean; data: { token: string; user: any; studio_id?: number }; message?: string }>(

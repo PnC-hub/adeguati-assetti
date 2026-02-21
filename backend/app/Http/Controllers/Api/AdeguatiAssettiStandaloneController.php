@@ -295,24 +295,24 @@ class AdeguatiAssettiStandaloneController extends Controller
         }
 
         $request->validate([
-            'piano' => 'required|string|in:pro,studio',
+            'piano' => 'required|string|in:impresa49,pro,studio',
             'billing' => 'sometimes|string|in:monthly,annual',
         ]);
 
         $billing = $request->billing ?? 'monthly';
         $piano = DB::table('aa_piani')->where('codice', $request->piano)->first();
 
-        if (!$piano || !$piano->stripe_price_id) {
+        // Determine price ID based on billing period using config()
+        $priceId = config('stripe.prices.' . $request->piano . '.' . $billing);
+        if (!$priceId && $piano && $piano->stripe_price_id) {
+            $priceId = $piano->stripe_price_id; // fallback to DB
+        }
+
+        if (!$priceId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Piano non disponibile per l\'acquisto.'
             ], 400);
-        }
-
-        // Determine price ID based on billing period using config()
-        $priceId = config('stripe.prices.' . $request->piano . '.' . $billing);
-        if (!$priceId) {
-            $priceId = $piano->stripe_price_id; // fallback to DB
         }
 
         try {
@@ -417,8 +417,10 @@ class AdeguatiAssettiStandaloneController extends Controller
                     if ($user && $subscriptionId) {
                         DB::table('aa_users')->where('id', $user->id)->update([
                             'stripe_subscription_id' => $subscriptionId,
-                            'piano' => $metadata['piano'] ?? 'pro',
+                            'piano' => $metadata['piano'] ?? 'impresa49',
                             'piano_attivo_dal' => now(),
+                            'subscription_started_at' => now(),
+                            'subscription_ended_at' => null,
                             'updated_at' => now(),
                         ]);
                     }
@@ -432,8 +434,29 @@ class AdeguatiAssettiStandaloneController extends Controller
                         'piano' => 'free',
                         'stripe_subscription_id' => null,
                         'piano_scade_il' => now(),
+                        'subscription_ended_at' => now(),
                         'updated_at' => now(),
                     ]);
+                }
+                break;
+
+            case 'customer.subscription.updated':
+                $customerId = $obj['customer'] ?? null;
+                $status = $obj['status'] ?? null;
+                if ($customerId && $status) {
+                    $user = DB::table('aa_users')->where('stripe_customer_id', $customerId)->first();
+                    if ($user) {
+                        $updates = ['updated_at' => now()];
+                        if (in_array($status, ['active', 'trialing'])) {
+                            $updates['subscription_ended_at'] = null;
+                        } elseif ($status === 'canceled') {
+                            $cancelAt = $obj['cancel_at'] ?? null;
+                            $updates['subscription_ended_at'] = $cancelAt
+                                ? Carbon::createFromTimestamp($cancelAt)
+                                : now();
+                        }
+                        DB::table('aa_users')->where('id', $user->id)->update($updates);
+                    }
                 }
                 break;
 

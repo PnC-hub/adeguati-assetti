@@ -19,6 +19,11 @@ return [
     */
 
     'prices' => [
+        // New business model: single plan for clients
+        'impresa49' => [
+            'monthly' => env('STRIPE_PRICE_IMPRESA49_MONTHLY'),
+        ],
+        // Legacy plans (kept for existing subscribers)
         'pro' => [
             'monthly' => env('STRIPE_PRICE_PRO_MONTHLY', 'price_1SwZUo1Aln4lEvRNJLHjSYPn'),
             'annual' => env('STRIPE_PRICE_PRO_ANNUAL', 'price_1SwZUp1Aln4lEvRNxNO23A98'),

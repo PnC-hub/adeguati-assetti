@@ -21,3 +21,9 @@ Schedule::job(new SendTrialEmails)->dailyAt('09:00')
     ->name('send-trial-emails')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Calculate monthly revenue share credits on the 2nd of each month at 03:00
+Schedule::command('crediti:calcola')->monthlyOn(2, '03:00')
+    ->name('calcola-crediti-commercialista')
+    ->withoutOverlapping()
+    ->onOneServer();

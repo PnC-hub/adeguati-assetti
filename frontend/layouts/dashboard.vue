@@ -139,6 +139,7 @@ const navigation = [
   { label: 'Inserimento Dati', icon: 'heroicons:pencil-square', to: '/dashboard/inserimento' },
   { label: 'Continuità', icon: 'heroicons:arrow-trending-up', to: '/dashboard/continuita' },
   { label: 'Checklist 2086', icon: 'heroicons:clipboard-document-check', to: '/dashboard/checklist' },
+  { label: 'Il Mio Commercialista', icon: 'heroicons:user-group', to: '/dashboard/commercialista' },
   { label: 'Invita Colleghi', icon: 'heroicons:gift', to: '/dashboard/referral' },
   { label: 'Account', icon: 'heroicons:user-circle', to: '/dashboard/account' },
 ]
