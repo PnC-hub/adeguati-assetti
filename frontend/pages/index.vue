@@ -46,7 +46,7 @@
                 Guarda Demo Live
               </button>
             </div>
-            <p class="text-blue-200 text-sm mt-4">Gratis per sempre. Nessuna carta richiesta.</p>
+            <p class="text-blue-200 text-sm mt-4">Registrazione gratuita · poi €49/mese · Disdici quando vuoi.</p>
           </div>
 
           <!-- Mini Dashboard Preview -->
@@ -524,7 +524,7 @@
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl md:text-4xl font-bold mb-4">Non aspettare che sia troppo tardi</h2>
         <p class="text-xl text-gray-300 mb-8">
-          Ogni mese senza monitoraggio e un rischio per te e la tua azienda. Inizia oggi stesso, e gratis.
+          Ogni mese senza monitoraggio è un rischio per te e la tua azienda. Inizia oggi stesso.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <NuxtLink to="/register" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 transition">
@@ -584,7 +584,7 @@
             Registrati Gratis
           </NuxtLink>
 
-          <p class="text-gray-500 text-sm mt-4">Nessuna carta di credito richiesta</p>
+          <p class="text-gray-500 text-sm mt-4">Registrazione gratuita · poi €49/mese · Disdici quando vuoi</p>
         </div>
 
         <!-- Referral Teaser -->
