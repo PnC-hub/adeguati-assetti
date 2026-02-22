@@ -543,62 +543,90 @@
       </div>
     </section>
 
-    <!-- Freemium Model Section -->
-    <section id="pricing" class="py-20 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 bg-gradient-to-br from-blue-700 to-blue-900 text-white">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm font-medium mb-6">
-          <Icon name="heroicons:gift" class="w-5 h-5" />
-          100% Gratuito
+          <Icon name="heroicons:currency-euro" class="w-5 h-5" />
+          Pricing trasparente
         </div>
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">Inizia a monitorare la tua azienda oggi</h2>
-        <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-          Accesso completo ai 7 KPI obbligatori CNDCEC. Gratis, per sempre.
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Il piano giusto per ogni ruolo</h2>
+        <p class="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
+          Gli imprenditori monitorano la loro azienda. I commercialisti supervisionano i loro clienti.
         </p>
 
-        <div class="bg-white rounded-2xl p-8 text-gray-900 max-w-xl mx-auto shadow-2xl">
-          <div class="flex items-center justify-center gap-3 mb-6">
-            <div class="text-5xl font-bold">Gratis</div>
+        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <!-- Card Imprenditore -->
+          <div class="bg-white rounded-2xl p-8 text-gray-900 shadow-2xl relative">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
+              PER L'IMPRENDITORE
+            </div>
+            <div class="mt-2 mb-6">
+              <div class="text-4xl font-bold">€49<span class="text-lg font-normal text-gray-500">/mese</span></div>
+              <p class="text-gray-500 text-sm mt-1">Prima prova gratuita · disdici quando vuoi</p>
+            </div>
+            <ul class="space-y-3 text-left mb-8">
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span class="text-sm">7 KPI obbligatori CNDCEC</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span class="text-sm">Score di salute aziendale</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span class="text-sm">Dashboard e storico completo</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span class="text-sm">Checklist compliance Art. 2086</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span class="text-sm">Collegamento con il tuo commercialista</span>
+              </li>
+            </ul>
+            <NuxtLink to="/register" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition text-center">
+              Inizia ora →
+            </NuxtLink>
           </div>
 
-          <ul class="space-y-3 text-left mb-8">
-            <li class="flex items-center gap-3">
-              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
-              <span>7 KPI obbligatori CNDCEC</span>
-            </li>
-            <li class="flex items-center gap-3">
-              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
-              <span>Score di salute aziendale</span>
-            </li>
-            <li class="flex items-center gap-3">
-              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
-              <span>Dashboard completa</span>
-            </li>
-            <li class="flex items-center gap-3">
-              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
-              <span>Checklist compliance Art. 2086</span>
-            </li>
-            <li class="flex items-center gap-3">
-              <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500 flex-shrink-0" />
-              <span>Storico ultimi 3 mesi</span>
-            </li>
-          </ul>
-
-          <NuxtLink to="/register" class="block w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 transition text-lg">
-            Registrati Gratis
-          </NuxtLink>
-
-          <p class="text-gray-500 text-sm mt-4">Registrazione gratuita · poi €49/mese · Disdici quando vuoi</p>
-        </div>
-
-        <!-- Referral Teaser -->
-        <div class="mt-12 bg-white/10 rounded-xl p-6 max-w-2xl mx-auto">
-          <div class="flex items-center justify-center gap-2 mb-3">
-            <Icon name="heroicons:gift" class="w-6 h-6 text-yellow-300" />
-            <span class="font-semibold">Sblocca funzionalita extra invitando colleghi</span>
+          <!-- Card Commercialista -->
+          <div class="bg-white/10 border border-white/20 rounded-2xl p-8 text-white shadow-2xl relative backdrop-blur">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-gray-900 text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
+              PER IL COMMERCIALISTA
+            </div>
+            <div class="mt-2 mb-6">
+              <div class="text-4xl font-bold">Gratuito</div>
+              <p class="text-blue-200 text-sm mt-1">Per sempre · senza limiti di clienti</p>
+            </div>
+            <ul class="space-y-3 text-left mb-8">
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <span class="text-sm">Pannello studio con tutti i clienti</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <span class="text-sm">Supervisione compliance in un colpo d'occhio</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <span class="text-sm">Report mensili automatici per cliente</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <span class="text-sm">Link invito personalizzato per i clienti</span>
+              </li>
+              <li class="flex items-center gap-3">
+                <Icon name="heroicons:check-circle" class="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <span class="text-sm text-yellow-200">+ Un benefit per il tuo lavoro di consulenza</span>
+              </li>
+            </ul>
+            <NuxtLink to="/commercialisti" class="block w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold hover:bg-yellow-300 transition text-center">
+              Scopri come funziona →
+            </NuxtLink>
           </div>
-          <p class="text-blue-100 text-sm">
-            Ogni collega che inviti ti regala +3 mesi di storico dati. Invitane 3 e sblocchi l'export PDF, invitane 5 e ottieni gli alert automatici.
-          </p>
         </div>
       </div>
     </section>
