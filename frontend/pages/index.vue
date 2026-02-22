@@ -15,10 +15,13 @@
             </div>
             <span class="font-bold text-xl">Adeguati Assetti Impresa</span>
           </div>
-          <div class="flex items-center gap-4">
-            <NuxtLink to="/login" class="text-white/80 hover:text-white">Accedi</NuxtLink>
-            <NuxtLink to="/register" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50">
-              Registrati Gratis
+          <div class="flex items-center gap-3">
+            <NuxtLink to="/login" class="text-white/80 hover:text-white text-sm">Accedi</NuxtLink>
+            <NuxtLink to="/commercialisti" class="text-white/80 hover:text-white text-sm border border-white/30 px-3 py-1.5 rounded-lg hover:bg-white/10 transition">
+              Per i Commercialisti
+            </NuxtLink>
+            <NuxtLink to="/register" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 text-sm">
+              Registrati Gratis →
             </NuxtLink>
           </div>
         </div>
